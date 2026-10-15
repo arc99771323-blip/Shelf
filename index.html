@@ -1,0 +1,1341 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Gestão de Validade - Dashboard Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-body: #0f172a;
+      --surface: #1e293b;
+      --surface-hover: #334155;
+      --border: #334155;
+      --border-focus: #6366f1;
+      
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      
+      --brand: #6366f1;
+
+      --status-vencido: #94a3b8;
+      --status-critico: #f43f5e;
+      --status-atencao: #fbbf24;
+      --status-ok: #34d399;
+
+      --radius: 12px;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container { 
+      max-width: 1320px; 
+      margin: 0 auto; 
+      padding: 20px; 
+    }
+
+    /* CABEÇALHO */
+    .app-header {
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .app-header h1 { 
+      font-size: 1.3rem; 
+      font-weight: 800; 
+      margin: 0; 
+      letter-spacing: -0.02em;
+    }
+    .app-header p { 
+      color: var(--text-muted); 
+      margin: 2px 0 0; 
+      font-size: 0.8rem; 
+    }
+
+    /* FILTROS */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: 2fr repeat(3, 1fr) auto;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    .field label { 
+      display: block; 
+      font-size: 0.7rem; 
+      font-weight: 700; 
+      letter-spacing: 0.08em;
+      text-transform: uppercase; 
+      color: var(--text-muted); 
+      margin-bottom: 6px; 
+    }
+    
+    input[type="text"], select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      color: var(--text-main);
+      background-color: rgba(15, 23, 42, 0.6);
+      transition: all 0.2s ease;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    button {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+    .btn-secondary { 
+      background: rgba(255, 255, 255, 0.05); 
+      color: var(--text-main); 
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--surface-hover); }
+
+    /* KPI DASHBOARD */
+    #painelResumo { 
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .kpi-grid { 
+      display: grid; 
+      grid-template-columns: repeat(4, 1fr); 
+      gap: 12px; 
+    }
+
+    .chip {
+      padding: 12px 14px; 
+      border-radius: 8px; 
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid var(--border); 
+      cursor: pointer; 
+      transition: all 0.2s ease;
+    }
+    .chip:hover { 
+      border-color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.8);
+    }
+    .chip.active { 
+      border-color: var(--brand); 
+      background: rgba(99, 102, 241, 0.15); 
+    }
+
+    .chip-label { 
+      font-size: 0.68rem; 
+      font-weight: 700; 
+      text-transform: uppercase; 
+      color: var(--text-muted); 
+      display: flex; 
+      align-items: center; 
+      gap: 6px; 
+    }
+    .chip-value { 
+      font-size: 1.3rem; 
+      font-weight: 800; 
+      margin: 2px 0; 
+      color: var(--text-main); 
+    }
+    .chip-sub { font-size: 0.72rem; color: var(--text-muted); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    .progress-container { 
+      display: flex; 
+      height: 4px; 
+      gap: 2px; 
+      margin-top: 10px; 
+      background: rgba(255, 255, 255, 0.05); 
+      border-radius: 99px; 
+      overflow: hidden; 
+    }
+    .prog-bar { height: 100%; transition: width 0.4s ease; }
+
+    /* LAYOUT EM CARTÕES */
+    .table-card { 
+      background: transparent !important; 
+      border: none !important; 
+      box-shadow: none !important; 
+      padding: 0;
+    }
+    
+    .table-wrap { width: 100%; }
+
+    #tbody {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    table, tbody {
+      display: block;
+      width: 100%;
+    }
+
+    thead { display: none; }
+
+    tr {
+      display: block;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    tr:hover {
+      border-color: var(--brand);
+      transform: translateY(-2px);
+    }
+
+    td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+      font-size: 0.85rem;
+      color: var(--text-main);
+    }
+
+    td:last-child { border-bottom: none; }
+
+    td::before {
+      content: attr(data-label);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    td.td-descricao {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+      margin-bottom: 8px;
+    }
+    td.td-descricao::before { display: none; }
+
+    .badge-cod { 
+      background: rgba(255, 255, 255, 0.05); 
+      color: var(--text-muted);
+      padding: 2px 6px; 
+      border-radius: 4px; 
+      font-weight: 600; 
+      font-family: monospace; 
+      font-size: 0.75rem;
+      border: 1px solid var(--border);
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    /* PAGINAÇÃO */
+    .pagination-wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .pagination-controls {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .page-btn {
+      min-width: 36px;
+      height: 36px;
+      padding: 0 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+
+    .page-btn:hover:not(:disabled) {
+      background: var(--surface-hover);
+      border-color: var(--text-muted);
+    }
+
+    .page-btn.active {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
+    }
+
+    .page-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .no-results { padding: 48px; text-align: center; color: var(--text-muted); }
+
+    /* AJUSTES RESPONSIVOS MOBILE */
+    @media (max-width: 768px) {
+      .container { padding: 12px; }
+      
+      .app-header { flex-direction: column; align-items: flex-start; gap: 4px; }
+      .app-header h1 { font-size: 1.15rem; }
+
+      .filter-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .filter-grid .field:first-child { grid-column: span 2; }
+      .filter-grid .btn-group { grid-column: span 2; }
+      .filter-grid .btn-group button { width: 100%; }
+
+      .kpi-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .chip { padding: 10px; }
+      .chip-value { font-size: 1.1rem; }
+
+      #tbody { grid-template-columns: 1fr; }
+
+      .pagination-wrapper { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header class="app-header">
+    <div>
+      <h1>Controle de Validade CDD Araçatuba</h1>
+      <p>Data de Coleta: 10 de Outubro, 2026 &bull; ID 99771323</p>
+    </div>
+  </header>
+
+  <!-- FILTROS -->
+  <div class="card">
+    <div class="filter-grid">
+      <div class="field">
+        <label for="codigo">Buscar Item</label>
+        <input id="codigo" type="text" placeholder="Digite o código..." />
+      </div>
+      <div class="field">
+        <label for="fEstrategia">Estratégia</label>
+        <select id="fEstrategia"><option value="">Todas</option></select>
+      </div>
+      <div class="field">
+        <label for="fCluster">Cluster</label>
+        <select id="fCluster"><option value="">Todos</option></select>
+      </div>
+      <div class="field">
+        <label for="fCategoria">Categoria</label>
+        <select id="fCategoria"><option value="">Todas</option></select>
+      </div>
+      <div class="btn-group">
+        <button id="btnLimpar" class="btn-secondary">Limpar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD RESUMO -->
+  <div class="card" id="painelResumo">
+    <div class="panel-header">
+      <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">Status do Estoque</span>
+      <button id="btnLimparFaixa" class="btn-secondary" style="padding: 2px 8px; font-size: 0.7rem;" disabled>Ver Todos</button>
+    </div>
+    
+    <div class="kpi-grid">
+      <div class="chip" data-range="vencidos">
+        <span class="chip-label"><span class="dot" style="background:var(--status-vencido)"></span>Vencidos</span>
+        <span class="chip-value" id="cntVenc">0</span>
+        <span class="chip-sub" id="volVenc">0p / 0cx</span>
+      </div>
+      <div class="chip" data-range="lte-30">
+        <span class="chip-label"><span class="dot" style="background:var(--status-critico)"></span>Crítico (&lt;30d)</span>
+        <span class="chip-value" id="cnt30">0</span>
+        <span class="chip-sub" id="vol30">0p / 0cx</span>
+      </div>
+      <div class="chip" data-range="30-59">
+        <span class="chip-label"><span class="dot" style="background:var(--status-atencao)"></span>Atenção (31-59d)</span>
+        <span class="chip-value" id="cnt60">0</span>
+        <span class="chip-sub" id="vol60">0p / 0cx</span>
+      </div>
+      <div class="chip" data-range="gte-60">
+        <span class="chip-label"><span class="dot" style="background:var(--status-ok)"></span>Saudável (&gt;60d)</span>
+        <span class="chip-value" id="cnt90">0</span>
+        <span class="chip-sub" id="vol90">0p / 0cx</span>
+      </div>
+    </div>
+
+    <div class="progress-container">
+      <div id="barVenc" class="prog-bar" style="background:var(--status-vencido)"></div>
+      <div id="bar30" class="prog-bar" style="background:var(--status-critico)"></div>
+      <div id="bar60" class="prog-bar" style="background:var(--status-atencao)"></div>
+      <div id="bar90" class="prog-bar" style="background:var(--status-ok)"></div>
+    </div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div id="areaResultados">
+    <div class="card table-card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Descrição do Item</th>
+              <th>Validade</th>
+              <th>Paletes</th>
+              <th>Caixas</th>
+              <th>Cluster</th>
+              <th>Status de Risco</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CONTROLES DE PAGINAÇÃO -->
+    <div class="pagination-wrapper">
+      <p id="resumoFinal" style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin: 0;"></p>
+      <div id="paginacao" class="pagination-controls"></div>
+    </div>
+  </div>
+
+  <div id="semResultados" class="no-results card" style="display:none;">
+    <h3 style="margin:0 0 6px; font-size: 0.95rem;">Nenhum item encontrado</h3>
+    <p style="margin:0; font-size: 0.8rem;">Tente ajustar os termos da sua pesquisa ou filtros.</p>
+  </div>
+</div>
+
+<script>
+  const HOJE = new Date();
+  HOJE.setHours(0, 0, 0, 0); 
+
+  const ITENS = [
+  { codigo: "253", descricao: "SUKITA PET 1L CAIXA C/6", validade: "25/02/2027", Plts: 1, Caixas: 175, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "253", descricao: "SUKITA PET 1L CAIXA C/6", validade: "10/03/2027", Plts: 2, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "503", descricao: "SUKITA PET 2L CAIXA C/6", validade: "04/03/2027", Plts: 1, Caixas: 71, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "503", descricao: "SUKITA PET 2L CAIXA C/6", validade: "21/03/2027", Plts: 3, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "503", descricao: "SUKITA PET 2L CAIXA C/6", validade: "15/03/2027", Plts: 14, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "503", descricao: "SUKITA PET 2L CAIXA C/6", validade: "03/03/2027", Plts: 3, Caixas: 39, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "503", descricao: "SUKITA PET 2L CAIXA C/6", validade: "31/03/2027", Plts: 2, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "504", descricao: "PEPSI COLA PET 2L CAIXA C/6", validade: "03/01/2027", Plts: 13, Caixas: 22, estrategia: "NAB S/ Gatorade", cluster: "CORE", categoria: "REFRIGERANTE" },
+{ codigo: "504", descricao: "PEPSI COLA PET 2L CAIXA C/6", validade: "30/12/2026", Plts: 0, Caixas: 67, estrategia: "NAB S/ Gatorade", cluster: "CORE", categoria: "REFRIGERANTE" },
+{ codigo: "982", descricao: "SKOL 600ML GFA", validade: "31/05/2027", Plts: 29, Caixas: 0, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "982", descricao: "SKOL 600ML GFA", validade: "26/05/2027", Plts: 1, Caixas: 35, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "988", descricao: "BRAHMA CHOPP 600ML GFA", validade: "03/05/2027", Plts: 20, Caixas: 0, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "988", descricao: "BRAHMA CHOPP 600ML GFA", validade: "29/05/2027", Plts: 1, Caixas: 5, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "1164", descricao: "SUKITA UVA LATA 350ML SH C/12 NPAL", validade: "27/02/2027", Plts: 0, Caixas: 10, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "1164", descricao: "SUKITA UVA LATA 350ML SH C/12 NPAL", validade: "08/04/2027", Plts: 0, Caixas: 8, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "1166", descricao: "SUKITA UVA PET 2L CAIXA C/6", validade: "11/01/2027", Plts: 1, Caixas: 71, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "1166", descricao: "SUKITA UVA PET 2L CAIXA C/6", validade: "22/01/2027", Plts: 2, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "1166", descricao: "SUKITA UVA PET 2L CAIXA C/6", validade: "12/01/2027", Plts: 6, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "1388", descricao: "SKOL GFA VD 1L 2 99", validade: "22/05/2027", Plts: 12, Caixas: 4, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "1695", descricao: "Brahma Chopp GFA 1L", validade: "16/05/2027", Plts: 8, Caixas: 0, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "1695", descricao: "Brahma Chopp GFA 1L", validade: "23/05/2027", Plts: 1, Caixas: 20, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "1699", descricao: "STELLA ARTOIS LT 269ML CX C/8 FRIDGE PACK", validade: "04/10/2026", Plts: 0, Caixas: 8, estrategia: "CERV LATA", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "1743", descricao: "ANTARCTICA PILSEN GFA VD 1L COM TTC", validade: "24/05/2027", Plts: 14, Caixas: 13, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "2008", descricao: "SUBZERO LATA 350ML C/12", validade: "03/06/2027", Plts: 7, Caixas: 209, estrategia: "CERV LATA", cluster: "VALUE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "2132", descricao: "GUARANA ANTARCTICA PET 1L CAIXA C/6 NOVA RIO", validade: "10/02/2027", Plts: 0, Caixas: 12, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "2132", descricao: "GUARANA ANTARCTICA PET 1L CAIXA C/6 NOVA RIO", validade: "14/03/2027", Plts: 4, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "2243", descricao: "GUARANA CHP ANTARCTICA MIX BAG IN BOX 18L", validade: "24/12/2026", Plts: 0, Caixas: 38, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "2349", descricao: "GUARANA ANTARCTICA PET 2L CAIXA C/6", validade: "01/03/2027", Plts: 11, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "CORE", categoria: "REFRIGERANTE" },
+{ codigo: "2349", descricao: "GUARANA ANTARCTICA PET 2L CAIXA C/6", validade: "08/03/2027", Plts: 10, Caixas: 127, estrategia: "NAB S/ Gatorade", cluster: "CORE", categoria: "REFRIGERANTE" },
+{ codigo: "2349", descricao: "GUARANA ANTARCTICA PET 2L CAIXA C/6", validade: "17/03/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "CORE", categoria: "REFRIGERANTE" },
+{ codigo: "2349", descricao: "GUARANA ANTARCTICA PET 2L CAIXA C/6", validade: "09/03/2027", Plts: 7, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "CORE", categoria: "REFRIGERANTE" },
+{ codigo: "2350", descricao: "SODA LIMONADA ANTARCTICA PET 2L CAIXA C/6", validade: "14/02/2027", Plts: 2, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "CORE", categoria: "REFRIGERANTE" },
+{ codigo: "2350", descricao: "SODA LIMONADA ANTARCTICA PET 2L CAIXA C/6", validade: "13/02/2027", Plts: 0, Caixas: 25, estrategia: "NAB S/ Gatorade", cluster: "CORE", categoria: "REFRIGERANTE" },
+{ codigo: "2353", descricao: "GUARANA CHP ANTARCTICA DIET PET 2L CAIXA C/6", validade: "28/02/2027", Plts: 3, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "CORE", categoria: "REFRIGERANTE" },
+{ codigo: "2353", descricao: "GUARANA CHP ANTARCTICA DIET PET 2L CAIXA C/6", validade: "06/03/2027", Plts: 10, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "CORE", categoria: "REFRIGERANTE" },
+{ codigo: "2353", descricao: "GUARANA CHP ANTARCTICA DIET PET 2L CAIXA C/6", validade: "19/02/2027", Plts: 1, Caixas: 83, estrategia: "NAB S/ Gatorade", cluster: "CORE", categoria: "REFRIGERANTE" },
+{ codigo: "2353", descricao: "GUARANA CHP ANTARCTICA DIET PET 2L CAIXA C/6", validade: "23/03/2027", Plts: 3, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "CORE", categoria: "REFRIGERANTE" },
+{ codigo: "2353", descricao: "GUARANA CHP ANTARCTICA DIET PET 2L CAIXA C/6", validade: "24/03/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "CORE", categoria: "REFRIGERANTE" },
+{ codigo: "2354", descricao: "DIET SODA LIMONADA ANTARCT PET 2L CX C/6", validade: "04/12/2026", Plts: 0, Caixas: 7, estrategia: "NAB S/ Gatorade", cluster: "CORE", categoria: "REFRIGERANTE" },
+{ codigo: "2538", descricao: "ANTARCTICA PILSEN 600ML", validade: "08/06/2027", Plts: 1, Caixas: 34, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "2538", descricao: "ANTARCTICA PILSEN 600ML", validade: "03/06/2027", Plts: 9, Caixas: 0, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "2538", descricao: "ANTARCTICA PILSEN 600ML", validade: "26/05/2027", Plts: 34, Caixas: 0, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "2546", descricao: "ORIGINAL 600ML GFA", validade: "16/05/2027", Plts: 12, Caixas: 0, estrategia: "CERV RGB", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "2546", descricao: "ORIGINAL 600ML GFA", validade: "04/06/2027", Plts: 0, Caixas: 38, estrategia: "CERV RGB", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "2548", descricao: "BUDWEISER 600ML GFA", validade: "05/05/2027", Plts: 0, Caixas: 24, estrategia: "CERV RGB", cluster: "INNO - CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "4141", descricao: "PATAGONIA AMB LAG NACIONAL LT SLEEK 350ML C 8 CX C", validade: "19/09/2027", Plts: 0, Caixas: 25, estrategia: "CERV LATA", cluster: "CRAFT", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "4204", descricao: "TIAL AGUA DE COCO TETRA PAK 1 L CX C/12", validade: "04/08/2027", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "4247", descricao: "MINALBA AGUA MINERAL C/GAS GFA PET 1,5L FD C/6", validade: "26/02/2027", Plts: 0, Caixas: 5, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "4249", descricao: "MINALBA AGUA MINERAL S/GAS GFA PET 1,5L FD C/6", validade: "29/03/2028", Plts: 1, Caixas: 0, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "4249", descricao: "MINALBA AGUA MINERAL S/GAS GFA PET 1,5L FD C/6", validade: "10/02/2028", Plts: 0, Caixas: 11, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "4254", descricao: "MINALBA AGUA MINERAL C/GAS GFA PET 510ML FD C/12", validade: "01/03/2027", Plts: 1, Caixas: 0, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "4254", descricao: "MINALBA AGUA MINERAL C/GAS GFA PET 510ML FD C/12", validade: "30/03/2027", Plts: 0, Caixas: 21, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "4262", descricao: "MICHELOB ULTRA N LT SLEEK 350ML C 8 CX CARTAO", validade: "25/02/2027", Plts: 0, Caixas: 37, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "4262", descricao: "MICHELOB ULTRA N LT SLEEK 350ML C 8 CX CARTAO", validade: "04/03/2027", Plts: 1, Caixas: 0, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "4262", descricao: "MICHELOB ULTRA N LT SLEEK 350ML C 8 CX CARTAO", validade: "16/02/2027", Plts: 1, Caixas: 0, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "4293", descricao: "PEPSI BLACK PET 200ML SH C/12", validade: "08/12/2026", Plts: 0, Caixas: 147, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "4311", descricao: "MINALBA AGUA MINERAL S/GAS GFA PET 510ML FD C/12", validade: "20/03/2028", Plts: 0, Caixas: 52, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "4311", descricao: "MINALBA AGUA MINERAL S/GAS GFA PET 510ML FD C/12", validade: "19/03/2028", Plts: 1, Caixas: 0, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "4326", descricao: "Minalba PET 310ml C/gas AGUA MINERAL", validade: "12/12/2026", Plts: 0, Caixas: 21, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "4341", descricao: "Minalba PET 310ml S/gas AGUA MINERAL", validade: "26/11/2027", Plts: 1, Caixas: 107, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "4409", descricao: "PEPSI TWIST PET 2L SHRINK C/6", validade: "31/01/2027", Plts: 1, Caixas: 137, estrategia: "NAB S/ Gatorade", cluster: "CORE", categoria: "REFRIGERANTE" },
+{ codigo: "7703", descricao: "PEPSI COLA PET 1L CAIXA C/6", validade: "26/09/2026", Plts: 2, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "7703", descricao: "PEPSI COLA PET 1L CAIXA C/6", validade: "13/10/2026", Plts: 2, Caixas: 121, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "7703", descricao: "PEPSI COLA PET 1L CAIXA C/6", validade: "29/12/2026", Plts: 0, Caixas: 137, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "7703", descricao: "PEPSI COLA PET 1L CAIXA C/6", validade: "29/01/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "7977", descricao: "GATORADE UVA PET 500ML SIXPACK", validade: "23/05/2027", Plts: 7, Caixas: 0, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7977", descricao: "GATORADE UVA PET 500ML SIXPACK", validade: "19/05/2027", Plts: 0, Caixas: 164, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7977", descricao: "GATORADE UVA PET 500ML SIXPACK", validade: "26/04/2027", Plts: 1, Caixas: 256, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7977", descricao: "GATORADE UVA PET 500ML SIXPACK", validade: "27/04/2027", Plts: 1, Caixas: 0, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7980", descricao: "GATORADE TANGERINA PET 500ML SIXPACK", validade: "20/05/2027", Plts: 0, Caixas: 135, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7980", descricao: "GATORADE TANGERINA PET 500ML SIXPACK", validade: "27/06/2027", Plts: 2, Caixas: 0, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7980", descricao: "GATORADE TANGERINA PET 500ML SIXPACK", validade: "27/05/2027", Plts: 0, Caixas: 279, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7981", descricao: "GATORADE LARANJA PET 500ML SIXPACK", validade: "15/05/2027", Plts: 1, Caixas: 0, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7981", descricao: "GATORADE LARANJA PET 500ML SIXPACK", validade: "05/06/2027", Plts: 3, Caixas: 0, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7981", descricao: "GATORADE LARANJA PET 500ML SIXPACK", validade: "01/02/2027", Plts: 2, Caixas: 0, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7981", descricao: "GATORADE LARANJA PET 500ML SIXPACK", validade: "15/02/2027", Plts: 0, Caixas: 120, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7981", descricao: "GATORADE LARANJA PET 500ML SIXPACK", validade: "04/06/2027", Plts: 2, Caixas: 0, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7981", descricao: "GATORADE LARANJA PET 500ML SIXPACK", validade: "22/04/2027", Plts: 3, Caixas: 0, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7981", descricao: "GATORADE LARANJA PET 500ML SIXPACK", validade: "19/04/2027", Plts: 1, Caixas: 260, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7982", descricao: "GATORADE LIMAO PET 500ML SIXPACK", validade: "08/06/2027", Plts: 0, Caixas: 193, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7982", descricao: "GATORADE LIMAO PET 500ML SIXPACK", validade: "28/05/2027", Plts: 1, Caixas: 0, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7982", descricao: "GATORADE LIMAO PET 500ML SIXPACK", validade: "11/05/2027", Plts: 1, Caixas: 0, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7982", descricao: "GATORADE LIMAO PET 500ML SIXPACK", validade: "12/05/2027", Plts: 0, Caixas: 288, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7982", descricao: "GATORADE LIMAO PET 500ML SIXPACK", validade: "12/06/2027", Plts: 4, Caixas: 0, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7983", descricao: "GATORADE MORANGO-MARACUJA PET 500ML SIXPACK", validade: "06/03/2027", Plts: 1, Caixas: 0, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7983", descricao: "GATORADE MORANGO-MARACUJA PET 500ML SIXPACK", validade: "20/06/2027", Plts: 3, Caixas: 0, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "7983", descricao: "GATORADE MORANGO-MARACUJA PET 500ML SIXPACK", validade: "05/05/2027", Plts: 0, Caixas: 472, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "8411", descricao: "GUARANA ANTARCTICA PET 1,5 SHRINK C/6", validade: "18/01/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "8411", descricao: "GUARANA ANTARCTICA PET 1,5 SHRINK C/6", validade: "26/01/2027", Plts: 0, Caixas: 99, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "8413", descricao: "DIET GUARANA CHP ANTARCT PET1,5L SH C/6", validade: "24/01/2027", Plts: 0, Caixas: 17, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "8418", descricao: "PEPSI COLA PET 1,5L CX06", validade: "23/01/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "8791", descricao: "H2OH LIMAO C/GAS PET 500ML CAIXA C/12", validade: "02/12/2026", Plts: 0, Caixas: 169, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "8791", descricao: "H2OH LIMAO C/GAS PET 500ML CAIXA C/12", validade: "03/01/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "8793", descricao: "H2OH LIMAO C/GAS PET 1,5L CAIXA C/6", validade: "07/01/2027", Plts: 2, Caixas: 37, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "8919", descricao: "GUARANA ANTARCTICA PET 600ML CX12 NPAL", validade: "01/03/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "8919", descricao: "GUARANA ANTARCTICA PET 600ML CX12 NPAL", validade: "02/03/2027", Plts: 0, Caixas: 134, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "8921", descricao: "DIET GUARANA CHP ANTART PET600ML CX C/12", validade: "08/03/2027", Plts: 0, Caixas: 142, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "8923", descricao: "PEPSI COLA PET 600ML CX12 NPAL", validade: "11/12/2026", Plts: 0, Caixas: 10, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9067", descricao: "ANTARCTICA PILSEN LATA 350ML SH C/12 NPAL", validade: "06/05/2027", Plts: 5, Caixas: 9, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9067", descricao: "ANTARCTICA PILSEN LATA 350ML SH C/12 NPAL", validade: "28/05/2027", Plts: 24, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9067", descricao: "ANTARCTICA PILSEN LATA 350ML SH C/12 NPAL", validade: "27/05/2027", Plts: 24, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9068", descricao: "SKOL LATA 350ML SH C/12 NPAL", validade: "09/04/2027", Plts: 21, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9068", descricao: "SKOL LATA 350ML SH C/12 NPAL", validade: "11/05/2027", Plts: 8, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9068", descricao: "SKOL LATA 350ML SH C/12 NPAL", validade: "29/05/2027", Plts: 1, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9068", descricao: "SKOL LATA 350ML SH C/12 NPAL", validade: "20/04/2027", Plts: 21, Caixas: 132, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9069", descricao: "BRAHMA CHOPP LATA 350 SH C/12", validade: "20/03/2027", Plts: 24, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9069", descricao: "BRAHMA CHOPP LATA 350 SH C/12", validade: "14/03/2027", Plts: 44, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9069", descricao: "BRAHMA CHOPP LATA 350 SH C/12", validade: "09/03/2027", Plts: 15, Caixas: 264, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9071", descricao: "CARACU LATA 350ML SH C/12 NPAL", validade: "16/04/2027", Plts: 0, Caixas: 146, estrategia: "CERV LATA", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9071", descricao: "CARACU LATA 350ML SH C/12 NPAL", validade: "22/04/2027", Plts: 1, Caixas: 0, estrategia: "CERV LATA", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9071", descricao: "CARACU LATA 350ML SH C/12 NPAL", validade: "23/04/2027", Plts: 0, Caixas: 164, estrategia: "CERV LATA", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9081", descricao: "MALZBIER BRAHMA LATA 350ML SH C/12 NPAL", validade: "02/05/2027", Plts: 1, Caixas: 0, estrategia: "CERV LATA", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9083", descricao: "SKOL LT 473ML SH C/12 NPAL", validade: "01/03/2027", Plts: 0, Caixas: 124, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9083", descricao: "SKOL LT 473ML SH C/12 NPAL", validade: "12/03/2027", Plts: 1, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9083", descricao: "SKOL LT 473ML SH C/12 NPAL", validade: "13/04/2027", Plts: 1, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9084", descricao: "GUARANA LATA 350 ML C/12 NPAL", validade: "04/08/2027", Plts: 0, Caixas: 230, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9084", descricao: "GUARANA LATA 350 ML C/12 NPAL", validade: "02/08/2027", Plts: 4, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9085", descricao: "GUARANA CHP ANTARCTICA DIET LATA 350ML SH C/12 NPAL", validade: "08/05/2027", Plts: 3, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9085", descricao: "GUARANA CHP ANTARCTICA DIET LATA 350ML SH C/12 NPAL", validade: "14/04/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9085", descricao: "GUARANA CHP ANTARCTICA DIET LATA 350ML SH C/12 NPAL", validade: "26/05/2027", Plts: 0, Caixas: 268, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9087", descricao: "SODA LATA 350ML C/12", validade: "21/05/2027", Plts: 0, Caixas: 208, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9088", descricao: "DIET SODA LIMONADA ANTARCT LT350MLSHC/12", validade: "01/03/2027", Plts: 0, Caixas: 7, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9091", descricao: "TONICA LATA 350", validade: "28/05/2027", Plts: 2, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9091", descricao: "TONICA LATA 350", validade: "12/05/2027", Plts: 0, Caixas: 139, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9091", descricao: "TONICA LATA 350", validade: "14/06/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9092", descricao: "TONICA ANTARCTICA DIET LATA 350ML SH C/12 NPAL", validade: "09/04/2027", Plts: 0, Caixas: 187, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9093", descricao: "PEPSI TWIST LATA 350ML SH C/12 NPAL", validade: "20/12/2026", Plts: 0, Caixas: 14, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9096", descricao: "PEPSI LATA 350ML C12", validade: "16/03/2027", Plts: 1, Caixas: 9, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9096", descricao: "PEPSI LATA 350ML C12", validade: "08/04/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9224", descricao: "ANTARCTICA PILSEN LT 269ML C/15 NPAL", validade: "04/05/2027", Plts: 0, Caixas: 17, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "9274", descricao: "PEPSI ZERO LATA 350ML SH C/12 NPAL", validade: "01/01/2027", Plts: 0, Caixas: 107, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9274", descricao: "PEPSI ZERO LATA 350ML SH C/12 NPAL", validade: "19/01/2027", Plts: 5, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9276", descricao: "PEPSI ZERO PET 2L CAIXA C6", validade: "23/12/2026", Plts: 3, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9276", descricao: "PEPSI ZERO PET 2L CAIXA C6", validade: "30/12/2026", Plts: 1, Caixas: 101, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9276", descricao: "PEPSI ZERO PET 2L CAIXA C6", validade: "10/01/2027", Plts: 4, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9276", descricao: "PEPSI ZERO PET 2L CAIXA C6", validade: "27/01/2027", Plts: 18, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "9320", descricao: "BRAHMA LT 473ML SH C/12 NPAL", validade: "21/05/2027", Plts: 1, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "11103", descricao: "H2OH CITRUS C/GAS PET 1 5 SHRINK C/06 NPAL", validade: "10/11/2026", Plts: 0, Caixas: 8, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "11103", descricao: "H2OH CITRUS C/GAS PET 1 5 SHRINK C/06 NPAL", validade: "22/12/2026", Plts: 0, Caixas: 2, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "11108", descricao: "BRAHMA CHOPP LATA 550ML SHRINK C/12", validade: "12/03/2027", Plts: 4, Caixas: 55, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "11108", descricao: "BRAHMA CHOPP LATA 550ML SHRINK C/12", validade: "01/05/2027", Plts: 0, Caixas: 193, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "11108", descricao: "BRAHMA CHOPP LATA 550ML SHRINK C/12", validade: "13/04/2027", Plts: 6, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "11110", descricao: "SKOL LATA 550ML SHRINK C/12", validade: "11/04/2027", Plts: 6, Caixas: 93, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "12948", descricao: "BRAHMA ZERO LATA SHRINK 350", validade: "21/03/2027", Plts: 10, Caixas: 0, estrategia: "CERV ZERO", cluster: "CORE", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "12948", descricao: "BRAHMA ZERO LATA SHRINK 350", validade: "02/03/2027", Plts: 2, Caixas: 0, estrategia: "CERV ZERO", cluster: "CORE", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "12948", descricao: "BRAHMA ZERO LATA SHRINK 350", validade: "16/02/2027", Plts: 0, Caixas: 109, estrategia: "CERV ZERO", cluster: "CORE", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "12948", descricao: "BRAHMA ZERO LATA SHRINK 350", validade: "18/03/2027", Plts: 4, Caixas: 164, estrategia: "CERV ZERO", cluster: "CORE", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "13061", descricao: "LIMONETO PET 500ML SHRINK C/12 NPAL", validade: "22/01/2027", Plts: 2, Caixas: 177, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "13061", descricao: "LIMONETO PET 500ML SHRINK C/12 NPAL", validade: "10/01/2027", Plts: 12, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "13061", descricao: "LIMONETO PET 500ML SHRINK C/12 NPAL", validade: "29/01/2027", Plts: 6, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "13061", descricao: "LIMONETO PET 500ML SHRINK C/12 NPAL", validade: "23/01/2027", Plts: 6, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "13065", descricao: "LIMONETO PET 1,5L SHRINK C/06 NPAL", validade: "16/01/2027", Plts: 0, Caixas: 110, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "13065", descricao: "LIMONETO PET 1,5L SHRINK C/06 NPAL", validade: "23/01/2027", Plts: 7, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "13201", descricao: "BRAHMA CHOPP GFA VD 300ML CX C/23", validade: "16/05/2027", Plts: 4, Caixas: 171, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "13201", descricao: "BRAHMA CHOPP GFA VD 300ML CX C/23", validade: "29/05/2027", Plts: 64, Caixas: 0, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "13203", descricao: "ANTARCTICA PILSEN GFA VD 300ML CX C/23", validade: "31/05/2027", Plts: 106, Caixas: 153, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "13203", descricao: "ANTARCTICA PILSEN GFA VD 300ML CX C/23", validade: "03/06/2027", Plts: 37, Caixas: 0, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "13203", descricao: "ANTARCTICA PILSEN GFA VD 300ML CX C/23", validade: "30/05/2027", Plts: 8, Caixas: 0, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "13205", descricao: "SKOL GFA VD 300ML CX C/23", validade: "22/05/2027", Plts: 7, Caixas: 82, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "13205", descricao: "SKOL GFA VD 300ML CX C/23", validade: "03/05/2027", Plts: 0, Caixas: 16, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "13205", descricao: "SKOL GFA VD 300ML CX C/23", validade: "28/05/2027", Plts: 67, Caixas: 0, estrategia: "CERV RGB", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "13566", descricao: "SKOL BEATS SENSES LATA 269ML CX C/8 FRIDGE PACK", validade: "07/05/2027", Plts: 0, Caixas: 122, estrategia: "CERV LATA", cluster: "MATCH", categoria: "MATCH" },
+{ codigo: "13839", descricao: "BUD LT 269ML CX C/8 FRIDGE PACK", validade: "21/12/2026", Plts: 0, Caixas: 193, estrategia: "CERV LATA", cluster: "CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "14135", descricao: "BUDWEISER LATA 473ML C/12 NPL", validade: "13/05/2027", Plts: 0, Caixas: 17, estrategia: "CERV LATA", cluster: "CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "14340", descricao: "ORIGINAL ONE WAY 300ML CXPAP12", validade: "10/02/2027", Plts: 1, Caixas: 0, estrategia: "CERV OUTROS", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "14340", descricao: "ORIGINAL ONE WAY 300ML CXPAP12", validade: "05/02/2027", Plts: 0, Caixas: 99, estrategia: "CERV OUTROS", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "14340", descricao: "ORIGINAL ONE WAY 300ML CXPAP12", validade: "19/02/2027", Plts: 2, Caixas: 0, estrategia: "CERV OUTROS", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "14340", descricao: "ORIGINAL ONE WAY 300ML CXPAP12", validade: "24/04/2027", Plts: 1, Caixas: 0, estrategia: "CERV OUTROS", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "14552", descricao: "COLORADO INDICA ONE WAY 600ML CX C-12", validade: "29/08/2027", Plts: 0, Caixas: 4, estrategia: "CERV OUTROS", cluster: "CRAFT", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17276", descricao: "PATAGONIA AMBER LAGER LN 355ML CX C/12", validade: "18/09/2027", Plts: 0, Caixas: 19, estrategia: "CERV LONG NECK", cluster: "CRAFT", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17278", descricao: "PATAGONIA WEISSE LN 355ML CX C/12", validade: "01/09/2027", Plts: 0, Caixas: 36, estrategia: "CERV LONG NECK", cluster: "CRAFT", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17678", descricao: "SKOL LATA 350ML SH C/18 NPAL MULTPACK", validade: "17/05/2027", Plts: 6, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17678", descricao: "SKOL LATA 350ML SH C/18 NPAL MULTPACK", validade: "16/04/2027", Plts: 3, Caixas: 51, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17678", descricao: "SKOL LATA 350ML SH C/18 NPAL MULTPACK", validade: "27/05/2027", Plts: 2, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17678", descricao: "SKOL LATA 350ML SH C/18 NPAL MULTPACK", validade: "26/05/2027", Plts: 2, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17678", descricao: "SKOL LATA 350ML SH C/18 NPAL MULTPACK", validade: "18/05/2027", Plts: 8, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17725", descricao: "ANTARCTICA PILSEN LATA 350ML SH C/18 NPAL MULTPACK", validade: "17/05/2027", Plts: 20, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17725", descricao: "ANTARCTICA PILSEN LATA 350ML SH C/18 NPAL MULTPACK", validade: "01/06/2027", Plts: 27, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17725", descricao: "ANTARCTICA PILSEN LATA 350ML SH C/18 NPAL MULTPACK", validade: "30/05/2027", Plts: 48, Caixas: 177, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17725", descricao: "ANTARCTICA PILSEN LATA 350ML SH C/18 NPAL MULTPACK", validade: "21/05/2027", Plts: 20, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17757", descricao: "BECKS NACIONAL LONG NECK 330ML SIX-PACK SHRINK C/24", validade: "28/02/2027", Plts: 0, Caixas: 4, estrategia: "CERV LONG NECK", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17757", descricao: "BECKS NACIONAL LONG NECK 330ML SIX-PACK SHRINK C/24", validade: "29/03/2027", Plts: 0, Caixas: 6, estrategia: "CERV LONG NECK", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17797", descricao: "MULTIPACK 350ML SH 18 BRAHMA CHOPP LATA", validade: "25/02/2027", Plts: 20, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17797", descricao: "MULTIPACK 350ML SH 18 BRAHMA CHOPP LATA", validade: "27/02/2027", Plts: 2, Caixas: 78, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17797", descricao: "MULTIPACK 350ML SH 18 BRAHMA CHOPP LATA", validade: "03/04/2027", Plts: 13, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17797", descricao: "MULTIPACK 350ML SH 18 BRAHMA CHOPP LATA", validade: "21/05/2027", Plts: 2, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17808", descricao: "BUD LONG NECK 330ML CX24", validade: "05/05/2027", Plts: 8, Caixas: 0, estrategia: "CERV LONG NECK", cluster: "CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17808", descricao: "BUD LONG NECK 330ML CX24", validade: "04/05/2027", Plts: 9, Caixas: 0, estrategia: "CERV LONG NECK", cluster: "CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17808", descricao: "BUD LONG NECK 330ML CX24", validade: "30/04/2027", Plts: 2, Caixas: 0, estrategia: "CERV LONG NECK", cluster: "CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "17808", descricao: "BUD LONG NECK 330ML CX24", validade: "22/04/2027", Plts: 0, Caixas: 58, estrategia: "CERV LONG NECK", cluster: "CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "18152", descricao: "GUARANA ANTARCTICA PET 200ML SH C/12", validade: "21/01/2027", Plts: 1, Caixas: 101, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "18266", descricao: "PEPSI COLA PET 200ML SH C/12", validade: "10/01/2027", Plts: 0, Caixas: 129, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "18266", descricao: "PEPSI COLA PET 200ML SH C/12", validade: "09/01/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "18267", descricao: "SODA LIMONADA 200ML PET ANTARCTICA SH C/12", validade: "03/01/2027", Plts: 0, Caixas: 56, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "18268", descricao: "SUKITA PET 200ML SH C/12", validade: "16/01/2027", Plts: 0, Caixas: 60, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "18752", descricao: "PATAGONIA WEISS OW 740", validade: "27/08/2027", Plts: 0, Caixas: 16, estrategia: "CERV OUTROS", cluster: "CRAFT", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "18807", descricao: "STELLA ARTOIS LONG NECK 330ML SIX-PACK SHRINK C/4", validade: "05/05/2027", Plts: 1, Caixas: 44, estrategia: "CERV LONG NECK", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "18807", descricao: "STELLA ARTOIS LONG NECK 330ML SIX-PACK SHRINK C/4", validade: "04/05/2027", Plts: 1, Caixas: 0, estrategia: "CERV LONG NECK", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "18836", descricao: "C/24 Corona LONG NECK 330ml", validade: "30/08/2027", Plts: 8, Caixas: 26, estrategia: "CERV LONG NECK", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "18836", descricao: "C/24 Corona LONG NECK 330ml", validade: "02/09/2027", Plts: 20, Caixas: 0, estrategia: "CERV LONG NECK", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "18836", descricao: "C/24 Corona LONG NECK 330ml", validade: "28/09/2027", Plts: 2, Caixas: 0, estrategia: "CERV LONG NECK", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "18860", descricao: "MULTPACK 15 269ML SH C/15 BRAHMA CHOPP LT", validade: "01/05/2027", Plts: 0, Caixas: 17, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "19164", descricao: "GUARANA ANTARCTICA PET 1L PACK C/2 MULTPACK", validade: "04/02/2027", Plts: 2, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "INNO - AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "19164", descricao: "GUARANA ANTARCTICA PET 1L PACK C/2 MULTPACK", validade: "19/03/2027", Plts: 6, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "INNO - AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "19164", descricao: "GUARANA ANTARCTICA PET 1L PACK C/2 MULTPACK", validade: "30/01/2027", Plts: 2, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "INNO - AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "19164", descricao: "GUARANA ANTARCTICA PET 1L PACK C/2 MULTPACK", validade: "25/01/2027", Plts: 2, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "INNO - AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "19164", descricao: "GUARANA ANTARCTICA PET 1L PACK C/2 MULTPACK", validade: "18/03/2027", Plts: 2, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "INNO - AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "19164", descricao: "GUARANA ANTARCTICA PET 1L PACK C/2 MULTPACK", validade: "15/01/2027", Plts: 0, Caixas: 16, estrategia: "NAB S/ Gatorade", cluster: "INNO - AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "19166", descricao: "COLORADO RIBEIRÃO LAGER ONE WAY 600ML CX C-12", validade: "28/02/2027", Plts: 0, Caixas: 7, estrategia: "CERV OUTROS", cluster: "CRAFT", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "19225", descricao: "RED BULL BR LATA 250ML CX C 24 NPAL .", validade: "16/03/2028", Plts: 0, Caixas: 72, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "19229", descricao: "RED BULL BR LATA 250ML C/6 SIX PACK NPAL", validade: "19/03/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "19229", descricao: "RED BULL BR LATA 250ML C/6 SIX PACK NPAL", validade: "19/05/2028", Plts: 0, Caixas: 384, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "19229", descricao: "RED BULL BR LATA 250ML C/6 SIX PACK NPAL", validade: "16/06/2028", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "19231", descricao: "RED BULL SUGAR FREE BR LATA 250ML FOUR PACK NPAL", validade: "11/06/2027", Plts: 0, Caixas: 850, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "19231", descricao: "RED BULL SUGAR FREE BR LATA 250ML FOUR PACK NPAL", validade: "23/07/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "19310", descricao: "ORIGINAL LT 350ML CX CARTAO C/12 NPAL", validade: "01/03/2027", Plts: 0, Caixas: 164, estrategia: "CERV LATA", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "19310", descricao: "ORIGINAL LT 350ML CX CARTAO C/12 NPAL", validade: "04/05/2027", Plts: 17, Caixas: 0, estrategia: "CERV LATA", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "19310", descricao: "ORIGINAL LT 350ML CX CARTAO C/12 NPAL", validade: "24/03/2027", Plts: 17, Caixas: 0, estrategia: "CERV LATA", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "19321", descricao: "GUARANA ANTARCTICA ZERO PET 200ML SH C/12", validade: "16/01/2027", Plts: 2, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "19321", descricao: "GUARANA ANTARCTICA ZERO PET 200ML SH C/12", validade: "28/12/2026", Plts: 0, Caixas: 327, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "19321", descricao: "GUARANA ANTARCTICA ZERO PET 200ML SH C/12", validade: "13/01/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "19729", descricao: "STELLA ARTOIS LT SLEEK 350ML C 8 CX CARTAO", validade: "01/11/2026", Plts: 4, Caixas: 302, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "20072", descricao: "BECKS N LT SLEEK 350ML C 8 CX CARTAO", validade: "25/05/2027", Plts: 0, Caixas: 7, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "20072", descricao: "BECKS N LT SLEEK 350ML C 8 CX CARTAO", validade: "23/03/2027", Plts: 0, Caixas: 9, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "20180", descricao: "PEPSI TWIST LT 269ML SH C/15", validade: "18/11/2026", Plts: 0, Caixas: 47, estrategia: "N/A", cluster: "N/A", categoria: "N/A" },
+{ codigo: "20217", descricao: "ORIGINAL GFA VD 300ML CX C/23", validade: "28/05/2027", Plts: 25, Caixas: 0, estrategia: "CERV RGB", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "20217", descricao: "ORIGINAL GFA VD 300ML CX C/23", validade: "27/05/2027", Plts: 0, Caixas: 5, estrategia: "CERV RGB", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "20329", descricao: "BRAHMA DUPLO MALTE 600ML", validade: "25/11/2026", Plts: 1, Caixas: 4, estrategia: "CERV RGB", cluster: "INNO - CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "20530", descricao: "STELLA ARTOIS 600 ML", validade: "26/05/2027", Plts: 3, Caixas: 30, estrategia: "CERV RGB", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "20535", descricao: "STELLA ARTOIS ONE WAY 600ML CX C/12 NPAL", validade: "14/05/2027", Plts: 0, Caixas: 32, estrategia: "CERV OUTROS", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "20549", descricao: "BRAHMA DUPLO MALTE GFA VD 300ML CX C/23", validade: "08/03/2027", Plts: 0, Caixas: 11, estrategia: "CERV RGB", cluster: "INNO - CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "20549", descricao: "BRAHMA DUPLO MALTE GFA VD 300ML CX C/23", validade: "27/05/2027", Plts: 0, Caixas: 30, estrategia: "CERV RGB", cluster: "INNO - CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "20603", descricao: "ORIGINAL LT 269ML CX CARTAO C/8 NPAL", validade: "08/04/2027", Plts: 0, Caixas: 13, estrategia: "CERV LATA", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "20853", descricao: "COLORADO LAGER LT 350ML C/8", validade: "11/02/2027", Plts: 0, Caixas: 12, estrategia: "CERV LATA", cluster: "CRAFT", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "20853", descricao: "COLORADO LAGER LT 350ML C/8", validade: "16/02/2027", Plts: 0, Caixas: 12, estrategia: "CERV LATA", cluster: "CRAFT", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "21020", descricao: "BUDWEISER LT SLEEK 350ML CX CART C 12", validade: "20/03/2027", Plts: 13, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "21020", descricao: "BUDWEISER LT SLEEK 350ML CX CART C 12", validade: "16/02/2027", Plts: 10, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "21020", descricao: "BUDWEISER LT SLEEK 350ML CX CART C 12", validade: "21/06/2027", Plts: 0, Caixas: 137, estrategia: "CERV LATA", cluster: "CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "21119", descricao: "SKOL BEATS GT LATA 269ML CX CAR C/8", validade: "27/03/2027", Plts: 0, Caixas: 489, estrategia: "CERV LATA", cluster: "MATCH", categoria: "MATCH" },
+{ codigo: "21441", descricao: "SUKITA LIMAO PET 2L CAIXA C/6", validade: "01/02/2027", Plts: 0, Caixas: 46, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "21441", descricao: "SUKITA LIMAO PET 2L CAIXA C/6", validade: "10/03/2027", Plts: 4, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "21526", descricao: "1 L - RED LABEL JOHNIE WALKER", validade: "12/08/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "21526", descricao: "1 L - RED LABEL JOHNIE WALKER", validade: "13/08/2029", Plts: 0, Caixas: 11, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "21526", descricao: "1 L - RED LABEL JOHNIE WALKER", validade: "25/09/2029", Plts: 0, Caixas: 386, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "21526", descricao: "1 L - RED LABEL JOHNIE WALKER", validade: "31/12/2099", Plts: 0, Caixas: 720, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "21527", descricao: "TANQUERAY LONDON DRY GARRAFA VIDRO 750ML", validade: "25/08/2027", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "21529", descricao: "ABSOLUT ORIGINAL GARRAFA VIDRO 1 L", validade: "14/08/2029", Plts: 0, Caixas: 13, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "21530", descricao: "SMIRNOFF ORIGINAL GARRAFA VIDRO 998ML", validade: "12/08/2029", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "21530", descricao: "SMIRNOFF ORIGINAL GARRAFA VIDRO 998ML", validade: "31/12/2099", Plts: 0, Caixas: 528, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "21658", descricao: "SPATEN LATA SLEEK 350ML CX CART C 12", validade: "14/05/2027", Plts: 2, Caixas: 0, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "21658", descricao: "SPATEN LATA SLEEK 350ML CX CART C 12", validade: "12/04/2027", Plts: 1, Caixas: 0, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "21658", descricao: "SPATEN LATA SLEEK 350ML CX CART C 12", validade: "24/05/2027", Plts: 4, Caixas: 74, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "21658", descricao: "SPATEN LATA SLEEK 350ML CX CART C 12", validade: "22/06/2027", Plts: 4, Caixas: 0, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "21666", descricao: "RED BULL TROPICAL BR LATA 250ML FOUR PACK NPAL .", validade: "14/04/2027", Plts: 0, Caixas: 65, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "21668", descricao: "SPATEN ONE WAY 600ML CX C/12 NP ARTE", validade: "23/05/2027", Plts: 0, Caixas: 22, estrategia: "CERV OUTROS", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "21779", descricao: "VELHO BARREIRO GARRAFA VIDRO 910ML", validade: "12/08/2029", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "21779", descricao: "VELHO BARREIRO GARRAFA VIDRO 910ML", validade: "31/12/2099", Plts: 0, Caixas: 1164, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "21789", descricao: "ORLOFF GARRAFA VIDRO 1 L", validade: "14/08/2029", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "21789", descricao: "ORLOFF GARRAFA VIDRO 1 L", validade: "25/09/2029", Plts: 0, Caixas: 5, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "21791", descricao: "PIRASSUNUNGA 51 CX PAPELÃO VIDRO 965ML", validade: "12/08/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "21791", descricao: "PIRASSUNUNGA 51 CX PAPELÃO VIDRO 965ML", validade: "31/12/2099", Plts: 0, Caixas: 1032, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "21792", descricao: "WHITE HORSE GARRAFA VIDRO 1 L", validade: "25/09/2029", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "21892", descricao: "NOVECENTO VINHO ARG MALBEC GFA OW 750ML CX C/6", validade: "12/08/2029", Plts: 0, Caixas: 5, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "21894", descricao: "NOVECENTO VINHO ARG CABERNET SAUVIGNON GFA OW 750M", validade: "31/12/2099", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "21898", descricao: "NOVECENTO ESPUMANTE ARGENTINO BRUT GFA OW 750ML CX", validade: "16/09/2059", Plts: 0, Caixas: 7, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "21900", descricao: "NOVECENTO ESPUMANTE ARGENTINO DULCE GFA OW 750ML C", validade: "31/12/2099", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "21955", descricao: "CHIVAS REGAL GARRAFA VIDRO 1 L", validade: "13/09/2029", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "21968", descricao: "TRIDENT HORTELA ENVELOPE 8G CX C/21", validade: "03/02/2028", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "21968", descricao: "TRIDENT HORTELA ENVELOPE 8G CX C/21", validade: "22/01/2028", Plts: 0, Caixas: 256, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "21968", descricao: "TRIDENT HORTELA ENVELOPE 8G CX C/21", validade: "10/05/2028", Plts: 0, Caixas: 6, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "21970", descricao: "TRIDENT MENTA ENVELOPE 8G CX C/21", validade: "17/05/2028", Plts: 0, Caixas: 9, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "21970", descricao: "TRIDENT MENTA ENVELOPE 8G CX C/21", validade: "17/03/2028", Plts: 0, Caixas: 864, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "21970", descricao: "TRIDENT MENTA ENVELOPE 8G CX C/21", validade: "17/08/2028", Plts: 0, Caixas: 64, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "21973", descricao: "TRIDENT MELANCIA ENVELOPE 8G CX C/21", validade: "02/06/2028", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "21973", descricao: "TRIDENT MELANCIA ENVELOPE 8G CX C/21", validade: "11/05/2028", Plts: 0, Caixas: 18, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "21974", descricao: "TRIDENT TUTTI-FRUTTI ENVELOPE 8G CX C/21", validade: "13/06/2028", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "21974", descricao: "TRIDENT TUTTI-FRUTTI ENVELOPE 8G CX C/21", validade: "06/07/2028", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "22003", descricao: "HALLS CEREJA ENVELOPE 28G CX C/21", validade: "14/06/2028", Plts: 0, Caixas: 5, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "22005", descricao: "HALLS MENTA ENVELOPE 28G CX C/21", validade: "14/07/2027", Plts: 0, Caixas: 6, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "22005", descricao: "HALLS MENTA ENVELOPE 28G CX C/21", validade: "08/05/2028", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "22007", descricao: "HALLS EXTRA FORTE ENVELOPE 28G CX C/21", validade: "28/05/2027", Plts: 0, Caixas: 150, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "22007", descricao: "HALLS EXTRA FORTE ENVELOPE 28G CX C/21", validade: "28/05/2028", Plts: 0, Caixas: 25, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "22007", descricao: "HALLS EXTRA FORTE ENVELOPE 28G CX C/21", validade: "30/07/2028", Plts: 0, Caixas: 420, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "22009", descricao: "CHICLETE ADAMS HORTELA CAIXINHA 2 8G CX C/100", validade: "13/01/2028", Plts: 0, Caixas: 5, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "22009", descricao: "CHICLETE ADAMS HORTELA CAIXINHA 2 8G CX C/100", validade: "29/01/2028", Plts: 0, Caixas: 12, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "22027", descricao: "COLORADO APPIA LT SLEEK 350ML C8 CX CARTAO NPAL", validade: "31/01/2027", Plts: 0, Caixas: 10, estrategia: "CERV LATA", cluster: "CRAFT", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "22027", descricao: "COLORADO APPIA LT SLEEK 350ML C8 CX CARTAO NPAL", validade: "26/01/2027", Plts: 0, Caixas: 11, estrategia: "CERV LATA", cluster: "CRAFT", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "22106", descricao: "MINI OREO PCT 35G CX C/10", validade: "10/03/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "22177", descricao: "BUDWEISER ZERO LT SLEEK 350ML C 8 CX CARTAO", validade: "24/11/2026", Plts: 2, Caixas: 0, estrategia: "CERV ZERO", cluster: "INNO - CORE PLUS", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "22177", descricao: "BUDWEISER ZERO LT SLEEK 350ML C 8 CX CARTAO", validade: "25/11/2026", Plts: 2, Caixas: 0, estrategia: "CERV ZERO", cluster: "INNO - CORE PLUS", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "22177", descricao: "BUDWEISER ZERO LT SLEEK 350ML C 8 CX CARTAO", validade: "26/11/2026", Plts: 0, Caixas: 117, estrategia: "CERV ZERO", cluster: "INNO - CORE PLUS", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "22177", descricao: "BUDWEISER ZERO LT SLEEK 350ML C 8 CX CARTAO", validade: "20/10/2026", Plts: 0, Caixas: 21, estrategia: "CERV ZERO", cluster: "INNO - CORE PLUS", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "22180", descricao: "BUDWEISER ZERO LONG NECK 330ML SIX-PACK SHRINK C/4", validade: "25/10/2026", Plts: 1, Caixas: 0, estrategia: "CERV ZERO", cluster: "INNO - CORE PLUS", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "22180", descricao: "BUDWEISER ZERO LONG NECK 330ML SIX-PACK SHRINK C/4", validade: "20/11/2026", Plts: 0, Caixas: 74, estrategia: "CERV ZERO", cluster: "INNO - CORE PLUS", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "22180", descricao: "BUDWEISER ZERO LONG NECK 330ML SIX-PACK SHRINK C/4", validade: "29/10/2026", Plts: 1, Caixas: 0, estrategia: "CERV ZERO", cluster: "INNO - CORE PLUS", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "22200", descricao: "TONICA ANTARCTICA PET 1 L SH C/06", validade: "05/12/2026", Plts: 0, Caixas: 5, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "22202", descricao: "TONICA ANTARCTICA ZERO PET 1L SH C/06", validade: "01/11/2026", Plts: 0, Caixas: 5, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "22259", descricao: "SUKITA UVA PET 200ML SH C/12", validade: "04/11/2026", Plts: 0, Caixas: 7, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "22382", descricao: "PASSPORT SCOTCH GARRAFA VIDRO 1 L", validade: "12/08/2029", Plts: 0, Caixas: 6, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "22382", descricao: "PASSPORT SCOTCH GARRAFA VIDRO 1 L", validade: "31/12/2099", Plts: 0, Caixas: 120, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "22505", descricao: "JIM BEAM HONEY GARRAFA VIDRO 1 L", validade: "14/08/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "22562", descricao: "DOMECQ COQ. COMPOSTO GARRAFA VIDRO 1 L", validade: "25/09/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "22641", descricao: "PRESIDENTE CONHAQ GARRAFA VIDRO 900ML", validade: "31/12/2099", Plts: 0, Caixas: 672, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "22641", descricao: "PRESIDENTE CONHAQ GARRAFA VIDRO 900ML", validade: "16/08/2029", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "23163", descricao: "SUKITA TUBAINA PET 2L SHRINK C/6", validade: "11/01/2027", Plts: 0, Caixas: 44, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "23163", descricao: "SUKITA TUBAINA PET 2L SHRINK C/6", validade: "15/03/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "23163", descricao: "SUKITA TUBAINA PET 2L SHRINK C/6", validade: "15/02/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "23184", descricao: "PITU AGUARDENTE LT 350ML CX C/12", validade: "01/08/2028", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "23186", descricao: "SPATEN N 600ML", validade: "26/06/2027", Plts: 2, Caixas: 16, estrategia: "CERV RGB", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "23218", descricao: "PATAGONIA IPA LN 355ML CX C/12", validade: "04/09/2027", Plts: 0, Caixas: 18, estrategia: "CERV LONG NECK", cluster: "CRAFT", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "23233", descricao: "NATU NOBILIS APERITIVO GARRAFA VIDRO 1 L", validade: "21/08/2029", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "23233", descricao: "NATU NOBILIS APERITIVO GARRAFA VIDRO 1 L", validade: "14/09/2029", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "23246", descricao: "PIRACANJUBA LEITE CONDENSADO TETRAPAK 395G CX C/27", validade: "29/07/2027", Plts: 0, Caixas: 6, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "MILK PRODUCT" },
+{ codigo: "23256", descricao: "200G PIRACANJUBA CREME DE LEITE TETRAPAK CX C/27", validade: "01/05/2027", Plts: 0, Caixas: 37, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "MILK PRODUCT" },
+{ codigo: "23271", descricao: "SKOL BEATS SENSES LONG NECK 269ML CX 24", validade: "19/05/2027", Plts: 0, Caixas: 4, estrategia: "CERV LONG NECK", cluster: "MATCH", categoria: "MATCH" },
+{ codigo: "23443", descricao: "PITU AGUARDENTE GARRAFA VIDRO 965ML", validade: "14/08/2029", Plts: 0, Caixas: 6, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "23463", descricao: "AGUA AMA S/GAS GFA PET 500ML PACK C/12", validade: "02/09/2027", Plts: 0, Caixas: 2, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "AGUA" },
+{ codigo: "23594", descricao: "PIRAKIDS BEBIDA LACTEA CHOCOLATE TETRA PAK 200 ML CX C/27", validade: "19/02/2027", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "MILK PRODUCT" },
+{ codigo: "23632", descricao: "STA. RITA 120 RES. ESP. CAMERNERE GFA VD 750ML", validade: "21/08/2029", Plts: 0, Caixas: 7, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "23671", descricao: "CERVEGELA PLASTICA BRAHMA 1 UN P/ GFA 1L CX C/3", validade: "25/09/2029", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "TRADE MATERIALS" },
+{ codigo: "23672", descricao: "CERVEGELA PLASTICA BRAHMA 1 UN P/ GFA 600ML CX C/3", validade: "25/09/2029", Plts: 0, Caixas: 36, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "TRADE MATERIALS" },
+{ codigo: "24042", descricao: "Pureza VITAL 1,5L S/gas PET", validade: "18/04/2027", Plts: 0, Caixas: 7, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "24044", descricao: "Pureza VITAL 510 C/gas PET", validade: "07/03/2027", Plts: 0, Caixas: 5, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "24055", descricao: "SAO LOURENCO AGUA MIN. S GAS GFA PET 510ML FD C 6", validade: "03/11/2027", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "24059", descricao: "SAO LOURENCO AGUA MIN. S GAS GFA PET 300ML FD C 12", validade: "29/07/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "24085", descricao: "SAO LOURENCO AGUA MIN. C GAS GFA PET 510ML FD C 6", validade: "22/02/2027", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "24168", descricao: "MICHELOB ULTRA N LONG NECK 330ML SIX-PACK SHRINK C", validade: "04/02/2027", Plts: 0, Caixas: 50, estrategia: "CERV LONG NECK", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "24168", descricao: "MICHELOB ULTRA N LONG NECK 330ML SIX-PACK SHRINK C", validade: "25/02/2027", Plts: 6, Caixas: 0, estrategia: "CERV LONG NECK", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "24168", descricao: "MICHELOB ULTRA N LONG NECK 330ML SIX-PACK SHRINK C", validade: "26/02/2027", Plts: 10, Caixas: 0, estrategia: "CERV LONG NECK", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "24258", descricao: "PETROPOLIS AGUA MIN S GAS PET 510ML CAIXA C/12", validade: "02/07/2027", Plts: 0, Caixas: 121, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "24304", descricao: "TODDYNHO 200ML TETRA PAK 200 ML CX C/27", validade: "14/04/2027", Plts: 0, Caixas: 6, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "24486", descricao: "GALLO AZEITE OLIVA EX. VIR. GFA VDR 500ML", validade: "01/11/2027", Plts: 0, Caixas: 2242, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "BASIC FOOD" },
+{ codigo: "24491", descricao: "GALLO AZEITE OLIVA TP UNICO GFA VDR 500ML", validade: "01/03/2027", Plts: 0, Caixas: 8, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "BASIC FOOD" },
+{ codigo: "24571", descricao: "ORLOFF VODKA GFA VD 1,75L", validade: "16/09/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "24571", descricao: "ORLOFF VODKA GFA VD 1,75L", validade: "25/09/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "24604", descricao: "MINALBA AGUA PREMIUM C/GAS GFA VDR 300ML CX/12", validade: "01/02/2028", Plts: 0, Caixas: 5, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "24609", descricao: "MINALBA AGUA PREMIUM S/GAS GFA VDR 300ML CX/12", validade: "11/01/2027", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "24611", descricao: "SAN PELLEGRINO COM GAS GARRAFA VD 750 ML CX 15", validade: "12/07/2028", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "24613", descricao: "ACQUA PANNA S/G GARRAFA VD 505 ML CX 24", validade: "02/04/2028", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "24641", descricao: "PERRIER CG GARRAFA VD 750 ML CX 12", validade: "16/09/2028", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "25174", descricao: "51 ICE BALADA GARRAFA VD 275ML CX C24", validade: "29/10/2027", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "25176", descricao: "51 ICE FRUIT MIX GARRAFA VD 275ML CX C24", validade: "20/01/2028", Plts: 0, Caixas: 5, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "25178", descricao: "51 ICE LIMAO GARRAFA VD 275ML CX C24", validade: "02/10/2027", Plts: 0, Caixas: 44, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "25180", descricao: "51 ICE MARACUJA GARRAFA VD 275ML CX C24", validade: "14/02/2028", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "25220", descricao: "51 OURO PIRASSUNUNGA GFA DE VDRO 965ML", validade: "14/05/2029", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "25329", descricao: "SALTON ESPUMANTE BRUT GFA VD 750 ML", validade: "13/09/2029", Plts: 0, Caixas: 5, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "26204", descricao: "SPATEN LT 269ML CX CARTAO C/8 NPAL", validade: "10/02/2027", Plts: 0, Caixas: 133, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "27177", descricao: "HALLS MENTOL ENVELOPE 28G CX C/21", validade: "13/06/2028", Plts: 0, Caixas: 5, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "27177", descricao: "HALLS MENTOL ENVELOPE 28G CX C/21", validade: "21/05/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "27179", descricao: "HALLS MORANGO ENVELOPE 28G CX C/21", validade: "28/02/2027", Plts: 0, Caixas: 256, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "27179", descricao: "HALLS MORANGO ENVELOPE 28G CX C/21", validade: "19/07/2028", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "27179", descricao: "HALLS MORANGO ENVELOPE 28G CX C/21", validade: "31/05/2028", Plts: 0, Caixas: 6, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "27375", descricao: "SAO FRANCISCO CACHACA GARRAFA VD 970ML", validade: "12/05/2029", Plts: 0, Caixas: 16, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "27375", descricao: "SAO FRANCISCO CACHACA GARRAFA VD 970ML", validade: "25/09/2029", Plts: 0, Caixas: 121, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "27567", descricao: "RESERVADO VINHO ROSE GFA VD 750 ML", validade: "25/09/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "27620", descricao: "RESERVADO VINHO MERLOT GFA VD 750 ML", validade: "21/05/2029", Plts: 0, Caixas: 11, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "27622", descricao: "RESERVADO VINHO CARMENERE GFA VD 750 ML", validade: "12/08/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "27825", descricao: "DOMUS CONHAQUE GARRAFA VIDRO 900ML", validade: "25/09/2029", Plts: 0, Caixas: 13, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "27825", descricao: "DOMUS CONHAQUE GARRAFA VIDRO 900ML", validade: "31/12/2099", Plts: 0, Caixas: 6, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "27866", descricao: "CORONA CERO SUNBREW N LONG NECK 330 ML SIX-PACK BA", validade: "01/07/2027", Plts: 1, Caixas: 0, estrategia: "CERV ZERO", cluster: "INNO - HE", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "27866", descricao: "CORONA CERO SUNBREW N LONG NECK 330 ML SIX-PACK BA", validade: "26/07/2027", Plts: 0, Caixas: 11, estrategia: "CERV ZERO", cluster: "INNO - HE", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "27866", descricao: "CORONA CERO SUNBREW N LONG NECK 330 ML SIX-PACK BA", validade: "05/08/2027", Plts: 4, Caixas: 0, estrategia: "CERV ZERO", cluster: "INNO - HE", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "28214", descricao: "Minalba LATA S/gas 310ml AGUA MINERAL", validade: "05/06/2027", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "28512", descricao: "PEPSI BLACK PET 1,5 SHRINK C/6", validade: "05/01/2027", Plts: 0, Caixas: 21, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "28512", descricao: "PEPSI BLACK PET 1,5 SHRINK C/6", validade: "21/01/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "28673", descricao: "VERMELHAO APERITIVO EMBAIXADOR GUSTTAVO GFA VD 740", validade: "25/09/2029", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "28700", descricao: "OREO ORIGINAL BISCOITO RECHEADO PACOTE 36G CX8", validade: "06/03/2027", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "28714", descricao: "HOCUS POCUS APA CADABRA GFA VDR 500 ML CX 6", validade: "31/03/2027", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "29042", descricao: "YPE TIXAN LAVA ROUPAS PRIMAVERA 800G", validade: "14/08/2029", Plts: 0, Caixas: 8, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HEALTH AND BEAUTY" },
+{ codigo: "29042", descricao: "YPE TIXAN LAVA ROUPAS PRIMAVERA 800G", validade: "25/09/2029", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HEALTH AND BEAUTY" },
+{ codigo: "29197", descricao: "TANG REFRESCO EM PO LIMAO PCT 18G DP C/18", validade: "09/03/2027", Plts: 0, Caixas: 15, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "29197", descricao: "TANG REFRESCO EM PO LIMAO PCT 18G DP C/18", validade: "17/08/2027", Plts: 0, Caixas: 9, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "29199", descricao: "TANG REFRESCO EM PO LARANJA PCT 18G DP C/18", validade: "11/04/2027", Plts: 0, Caixas: 7, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "29199", descricao: "TANG REFRESCO EM PO LARANJA PCT 18G DP C/18", validade: "09/03/2027", Plts: 0, Caixas: 16, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "29201", descricao: "TANG REFRESCO EM PO ABACAXI PCT 18G DP C/18", validade: "11/03/2027", Plts: 0, Caixas: 7, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "29201", descricao: "TANG REFRESCO EM PO ABACAXI PCT 18G DP C/18", validade: "08/09/2027", Plts: 0, Caixas: 16, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "29207", descricao: "TANG REFRESCO EM PO MORANGO PCT 18G DP C/18", validade: "29/04/2027", Plts: 0, Caixas: 9, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "29207", descricao: "TANG REFRESCO EM PO MORANGO PCT 18G DP C/18", validade: "15/08/2027", Plts: 0, Caixas: 7, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "29209", descricao: "TANG REFRESCO EM PO MARACUJA PCT 18G DP C/18", validade: "19/03/2027", Plts: 0, Caixas: 7, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "29209", descricao: "TANG REFRESCO EM PO MARACUJA PCT 18G DP C/18", validade: "18/03/2027", Plts: 0, Caixas: 17, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "29215", descricao: "TANG REFRESCO EM PO UVA PCT 18G DP C/18", validade: "22/07/2027", Plts: 0, Caixas: 7, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "29215", descricao: "TANG REFRESCO EM PO UVA PCT 18G DP C/18", validade: "20/08/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "29215", descricao: "TANG REFRESCO EM PO UVA PCT 18G DP C/18", validade: "09/09/2027", Plts: 0, Caixas: 15, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "29253", descricao: "ORIGINAL GFA VD 1L", validade: "05/03/2027", Plts: 0, Caixas: 11, estrategia: "CERV RGB", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "29253", descricao: "ORIGINAL GFA VD 1L", validade: "17/05/2027", Plts: 5, Caixas: 0, estrategia: "CERV RGB", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "29408", descricao: "KEROCOCO AGUA DE COCO TETRAPK 200ML CX27", validade: "13/03/2027", Plts: 0, Caixas: 7, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "29493", descricao: "GATORADE ZERO CALORIA LARANJA PET 350ML SH C12", validade: "19/03/2027", Plts: 0, Caixas: 13, estrategia: "NAB GATORADE", cluster: "INNO - ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "29493", descricao: "GATORADE ZERO CALORIA LARANJA PET 350ML SH C12", validade: "10/03/2027", Plts: 0, Caixas: 10, estrategia: "NAB GATORADE", cluster: "INNO - ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "29580", descricao: "STELLA PURE GOLD LONG NECK 330ML SP SH C/4", validade: "19/05/2027", Plts: 1, Caixas: 0, estrategia: "CERV LONG NECK", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "29580", descricao: "STELLA PURE GOLD LONG NECK 330ML SP SH C/4", validade: "21/05/2027", Plts: 6, Caixas: 0, estrategia: "CERV LONG NECK", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "29580", descricao: "STELLA PURE GOLD LONG NECK 330ML SP SH C/4", validade: "07/05/2027", Plts: 6, Caixas: 49, estrategia: "CERV LONG NECK", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "29654", descricao: "PASSPORT HONEY LICOR GARRAFA VIDRO 670ML", validade: "12/08/2029", Plts: 0, Caixas: 9, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "29703", descricao: "BUDWEISER GFA VD 300ML CX C/23", validade: "08/04/2027", Plts: 0, Caixas: 17, estrategia: "CERV RGB", cluster: "INNO - CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "29733", descricao: "HALLS MELANCIA ENVELOPE 28G CX C/21", validade: "10/05/2028", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "29991", descricao: "SKOL BEATS SENSES LN 269ML CX12", validade: "16/06/2027", Plts: 1, Caixas: 24, estrategia: "CERV LONG NECK", cluster: "INNO - MATCH", categoria: "MATCH" },
+{ codigo: "30045", descricao: "RED BULL BR LATA 473ML CX C 12", validade: "19/06/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "30045", descricao: "RED BULL BR LATA 473ML CX C 12", validade: "19/06/2028", Plts: 0, Caixas: 50, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "30942", descricao: "SPATEN N LONG NECK 330ML SIX-PACK SHRINK C/4", validade: "31/05/2027", Plts: 3, Caixas: 0, estrategia: "CERV LONG NECK", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "30942", descricao: "SPATEN N LONG NECK 330ML SIX-PACK SHRINK C/4", validade: "24/05/2027", Plts: 6, Caixas: 0, estrategia: "CERV LONG NECK", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "30942", descricao: "SPATEN N LONG NECK 330ML SIX-PACK SHRINK C/4", validade: "22/04/2027", Plts: 1, Caixas: 24, estrategia: "CERV LONG NECK", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "31272", descricao: "FUSION LT 473ML SH C/12 NPAL", validade: "15/01/2027", Plts: 0, Caixas: 3, estrategia: "NAB S/ Gatorade", cluster: "INNO - ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "31791", descricao: "YPE MULTIUSO CLASSICO FRASCO PLAST 500ML CX/12", validade: "12/08/2029", Plts: 0, Caixas: 10, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HEALTH AND BEAUTY" },
+{ codigo: "31795", descricao: "BRUTAL FRUIT LONG NECK 275ML CX C12", validade: "16/12/2026", Plts: 0, Caixas: 46, estrategia: "CERV LONG NECK", cluster: "INNO - MATCH", categoria: "MATCH" },
+{ codigo: "31875", descricao: "PIRACANJUBA WHEY MORANGO TETRAPAK 250ML CX C/12", validade: "18/02/2027", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "MILK PRODUCT" },
+{ codigo: "31894", descricao: "PIRACANJUBA PROTEIN WHEY CHOCOLATE TETRAPAK 250ML", validade: "05/12/2026", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "MILK PRODUCT" },
+{ codigo: "31894", descricao: "PIRACANJUBA PROTEIN WHEY CHOCOLATE TETRAPAK 250ML", validade: "09/03/2027", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "MILK PRODUCT" },
+{ codigo: "31894", descricao: "PIRACANJUBA PROTEIN WHEY CHOCOLATE TETRAPAK 250ML", validade: "13/02/2027", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "MILK PRODUCT" },
+{ codigo: "32067", descricao: "GATORADE BERRY BLUE PET 500ML SIXPACK", validade: "02/05/2027", Plts: 0, Caixas: 72, estrategia: "NAB GATORADE", cluster: "INNO - ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "32067", descricao: "GATORADE BERRY BLUE PET 500ML SIXPACK", validade: "22/05/2027", Plts: 1, Caixas: 0, estrategia: "NAB GATORADE", cluster: "INNO - ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "32067", descricao: "GATORADE BERRY BLUE PET 500ML SIXPACK", validade: "20/06/2027", Plts: 1, Caixas: 0, estrategia: "NAB GATORADE", cluster: "INNO - ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "32067", descricao: "GATORADE BERRY BLUE PET 500ML SIXPACK", validade: "21/04/2027", Plts: 0, Caixas: 21, estrategia: "NAB GATORADE", cluster: "INNO - ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "32128", descricao: "PACOQUITA QUADRADA PCT PL 18G DSP C/24", validade: "08/06/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "32164", descricao: "GUARAVITON ACAI GFA PET 500ML PACK C/12 SP", validade: "06/01/2027", Plts: 0, Caixas: 16, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "32173", descricao: "GUARAVITON NAT GINSENG GFA PET 500ML PACK C/12 SP", validade: "19/01/2027", Plts: 0, Caixas: 6, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "32349", descricao: "BEATS TROPICAL LATA 269ML CX CARTAO C/8 NPAL", validade: "20/04/2027", Plts: 0, Caixas: 12, estrategia: "CERV LATA", cluster: "INNO - MATCH", categoria: "MATCH" },
+{ codigo: "32354", descricao: "YPE LAVA LOUCAS LIQUIDO CLEAR FRASCO PLAST 500ML C/6", validade: "25/09/2029", Plts: 0, Caixas: 232, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HEALTH AND BEAUTY" },
+{ codigo: "32355", descricao: "YPE LAVA LOUCAS LIQUIDO NEUTRO PLAST 500ML cx 6", validade: "25/09/2029", Plts: 0, Caixas: 104, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HEALTH AND BEAUTY" },
+{ codigo: "32361", descricao: "BEATS TROPICAL LONG NECK 269ML SIX-PACK SH C/24", validade: "02/03/2027", Plts: 0, Caixas: 1, estrategia: "CERV LONG NECK", cluster: "INNO - MATCH", categoria: "MATCH" },
+{ codigo: "32362", descricao: "MINALBA 5L S/GAS PET AGUA MINERAL", validade: "27/10/2027", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "32441", descricao: "SAO LOURENCO AGUA MIN. S GAS GFA PET 1260ML FD C 6", validade: "24/02/2028", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "32500", descricao: "STELLA ARTOIS PURE GOLD LT SLEEK 350ML C 8 CX CART", validade: "07/05/2027", Plts: 2, Caixas: 0, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "32500", descricao: "STELLA ARTOIS PURE GOLD LT SLEEK 350ML C 8 CX CART", validade: "23/04/2027", Plts: 1, Caixas: 98, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "32541", descricao: "RENO VINHO TINTO GFA VD 750 ML", validade: "14/08/2029", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "32646", descricao: "BUBBALOO TUTTI FRUTTI DISPLAY 5G CX/60", validade: "07/06/2027", Plts: 0, Caixas: 9, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "32646", descricao: "BUBBALOO TUTTI FRUTTI DISPLAY 5G CX/60", validade: "07/06/2028", Plts: 0, Caixas: 12, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "32718", descricao: "YPE ESPONJA SINT MULTIUSO PCT PL 8G PACK C/10", validade: "13/08/2029", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HEALTH AND BEAUTY" },
+{ codigo: "32749", descricao: "CORONA EXTRA N 600ML", validade: "03/04/2027", Plts: 0, Caixas: 33, estrategia: "CERV RGB", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "32749", descricao: "CORONA EXTRA N 600ML", validade: "02/10/2027", Plts: 1, Caixas: 0, estrategia: "CERV RGB", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "32749", descricao: "CORONA EXTRA N 600ML", validade: "18/09/2027", Plts: 4, Caixas: 0, estrategia: "CERV RGB", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "32854", descricao: "SMIRNOFF ICE LT 269 ML CX C/24", validade: "12/04/2027", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Hard Liquor" },
+{ codigo: "32969", descricao: "RED BULL SUMMER MORANGO E PESSEGO LATA 250ML", validade: "04/06/2027", Plts: 0, Caixas: 1, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "33012", descricao: "GUARANA CHP ANTARCTICA GFA VD 300ML CX C/23", validade: "22/02/2027", Plts: 3, Caixas: 70, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "33012", descricao: "GUARANA CHP ANTARCTICA GFA VD 300ML CX C/23", validade: "24/05/2027", Plts: 6, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "33219", descricao: "NOVECENTO VINHO ARGENTINO BLEND DE BLANC GARRAFA V", validade: "31/12/2099", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "33236", descricao: "PUREZA VITAL AGUA MIN. S GAS GALAO 6,3 L", validade: "11/05/2027", Plts: 0, Caixas: 5, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "33412", descricao: "TORCIDA SALG DE TRIGO BACON PCT 60G CX C/24", validade: "15/02/2027", Plts: 0, Caixas: 15, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "33426", descricao: "TORCIDA SALG DE TRIGO QUEIJO PCT 60G CX C/24", validade: "30/11/2027", Plts: 0, Caixas: 10, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "33428", descricao: "TORCIDA SALG DE TRIGO CHURRASCO PCT 60G CX C/24", validade: "21/12/2026", Plts: 0, Caixas: 32, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "33428", descricao: "TORCIDA SALG DE TRIGO CHURRASCO PCT 60G CX C/24", validade: "18/01/2027", Plts: 0, Caixas: 30, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "33430", descricao: "TORCIDA SALG DE TRIGO CEBOLA PCT 60G CX C/24", validade: "15/02/2027", Plts: 0, Caixas: 8, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "33432", descricao: "TORCIDA SALG DE TRIGO PIMENTA MEXICANA PCT 60G CX", validade: "08/02/2027", Plts: 0, Caixas: 41, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "33436", descricao: "TORCIDA SALG DE TRIGO PAO DE ALHO PCT 60G CX C/24", validade: "15/02/2027", Plts: 0, Caixas: 6, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "33734", descricao: "BEATS RED MIX LATA 269ML SH C/8", validade: "06/06/2027", Plts: 0, Caixas: 159, estrategia: "CERV LATA", cluster: "INNO - MATCH", categoria: "MATCH" },
+{ codigo: "33738", descricao: "C/12 BEATS RED MIX LONG NECK 269ML SIX-PACK SH", validade: "22/01/2027", Plts: 1, Caixas: 0, estrategia: "CERV LONG NECK", cluster: "INNO - MATCH", categoria: "MATCH" },
+{ codigo: "33738", descricao: "C/12 BEATS RED MIX LONG NECK 269ML SIX-PACK SH", validade: "08/06/2027", Plts: 0, Caixas: 44, estrategia: "CERV LONG NECK", cluster: "INNO - MATCH", categoria: "MATCH" },
+{ codigo: "33738", descricao: "C/12 BEATS RED MIX LONG NECK 269ML SIX-PACK SH", validade: "03/05/2027", Plts: 0, Caixas: 15, estrategia: "CERV LONG NECK", cluster: "INNO - MATCH", categoria: "MATCH" },
+{ codigo: "33818", descricao: "MULTIPACK ORIGINAL 350 c/12", validade: "15/03/2027", Plts: 2, Caixas: 0, estrategia: "CERV LATA", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "33818", descricao: "MULTIPACK ORIGINAL 350 c/12", validade: "28/03/2027", Plts: 2, Caixas: 0, estrategia: "CERV LATA", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "33818", descricao: "MULTIPACK ORIGINAL 350 c/12", validade: "09/05/2027", Plts: 14, Caixas: 1, estrategia: "CERV LATA", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "33818", descricao: "MULTIPACK ORIGINAL 350 c/12", validade: "04/09/2027", Plts: 1, Caixas: 0, estrategia: "CERV LATA", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "34027", descricao: "MULTIPACK GUARANA LT 350 C/12", validade: "19/08/2027", Plts: 0, Caixas: 162, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "34027", descricao: "MULTIPACK GUARANA LT 350 C/12", validade: "26/05/2027", Plts: 2, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "34178", descricao: "LACTA OURO BRANCO 1 UN 20G PCT C540G", validade: "01/04/2027", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "34178", descricao: "LACTA OURO BRANCO 1 UN 20G PCT C540G", validade: "21/04/2027", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "34180", descricao: "LACTA SONHO DE VALSA 1 UN 20G PCT C540G", validade: "10/04/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "34180", descricao: "LACTA SONHO DE VALSA 1 UN 20G PCT C540G", validade: "13/06/2027", Plts: 0, Caixas: 5, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "34263", descricao: "CORONA CERO SUNBREW N LATA SLEEK 350ML C 8 CX CARTAO", validade: "24/05/2027", Plts: 0, Caixas: 110, estrategia: "CERV ZERO", cluster: "INNO - HE", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "34296", descricao: "TRIDENT CANELA ENVELOPE 8G CX C/21", validade: "12/05/2028", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "34298", descricao: "TRIDENT MORANGO ENVELOPE 8G CX C/21", validade: "14/05/2028", Plts: 0, Caixas: 9, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "34320", descricao: "MULTIPACK GUARANA ZERO LT 350 C/12", validade: "28/04/2027", Plts: 0, Caixas: 97, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "34405", descricao: "FLORESTAL BALA BRAZILIAN COFFEE PCT PLAST 500G", validade: "19/08/2028", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "34405", descricao: "FLORESTAL BALA BRAZILIAN COFFEE PCT PLAST 500G", validade: "18/08/2028", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "34410", descricao: "HALLS UVA VERDE ENVELOPE 28G CX C/21", validade: "28/05/2028", Plts: 0, Caixas: 8, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "34410", descricao: "HALLS UVA VERDE ENVELOPE 28G CX C/21", validade: "11/06/2028", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "34429", descricao: "RED BULL AMORA LATA 250ML FOUR PACK NPAL", validade: "20/02/2027", Plts: 0, Caixas: 1, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "34429", descricao: "RED BULL AMORA LATA 250ML FOUR PACK NPAL", validade: "07/02/2027", Plts: 0, Caixas: 1, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "34432", descricao: "RED BULL TROPICAL BR LATA 473ML CX C 12", validade: "16/05/2027", Plts: 0, Caixas: 8, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "34454", descricao: "H2OH LIMONETO LT SLEEK 350ML SH C 12", validade: "16/02/2027", Plts: 2, Caixas: 7, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "34460", descricao: "FLORESTAL BALINHA CORAC MORANGO PCT PLAST 108G", validade: "13/01/2028", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "34608", descricao: "MULTIPACK SKOL LATA 350ML SH C/12 NPAL", validade: "20/05/2027", Plts: 20, Caixas: 14, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "34608", descricao: "MULTIPACK SKOL LATA 350ML SH C/12 NPAL", validade: "29/05/2027", Plts: 19, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "34654", descricao: "FLOPITO PIRULITO CORACAO VERMELHO PCT PLAST 500G", validade: "10/07/2028", Plts: 0, Caixas: 7, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "34655", descricao: "POP KISS PIRULITO CEREJA PCT PLAST 500G", validade: "06/07/2028", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "34655", descricao: "POP KISS PIRULITO CEREJA PCT PLAST 500G", validade: "08/07/2028", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "34770", descricao: "RED BULL SUGAR FREE POMELO LATA 250ML FOUR PACK NP", validade: "29/12/2026", Plts: 0, Caixas: 12, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "34770", descricao: "RED BULL SUGAR FREE POMELO LATA 250ML FOUR PACK NP", validade: "10/07/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "34779", descricao: "TRIDENT XFRESH HERBAL ENVELOPE 8G CX C/21", validade: "21/03/2028", Plts: 0, Caixas: 8, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "35003", descricao: "TRIDENT XFRESH 5S PRETO CEREJA ENVELOPE 8G CX C/21", validade: "13/03/2028", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "35003", descricao: "TRIDENT XFRESH 5S PRETO CEREJA ENVELOPE 8G CX C/21", validade: "11/11/2027", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "35030", descricao: "BALLANTINES SUNSHINE GFA VIDRO 700ML", validade: "25/09/2029", Plts: 0, Caixas: 9, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "35231", descricao: "CROQUES BATATA CHIPS FRANGO GRELHADO PACOTE 45G CX", validade: "17/04/2027", Plts: 0, Caixas: 5, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "35232", descricao: "CROQUES BATATA CHIPS LISA NATURAL PACOTE 45G CX10", validade: "19/04/2027", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "35245", descricao: "TANG REFRESCO EM PO TANGERINA PCT 18G DP C/18", validade: "28/04/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "35247", descricao: "TANG REFRESCO EM PO MANGA PCT 18G DP C/18", validade: "19/08/2027", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "35481", descricao: "ALECRIM VINHO ROSE PORTUGAL GFA VD 750 ML", validade: "12/05/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "35617", descricao: "BEATS GREEN MIX LATA 269ML SH C/8", validade: "14/11/2026", Plts: 0, Caixas: 410, estrategia: "CERV LATA", cluster: "MATCH", categoria: "MATCH" },
+{ codigo: "35620", descricao: "C/4 BEATS GREEN MIX LONG NECK 269ML SIX-PACK", validade: "14/11/2026", Plts: 0, Caixas: 18, estrategia: "CERV LONG NECK", cluster: "MATCH", categoria: "MATCH" },
+{ codigo: "35623", descricao: "C/12 BEATS GREEN MIX LONG NECK 269ML SIX-PACK", validade: "16/06/2027", Plts: 0, Caixas: 157, estrategia: "CERV LONG NECK", cluster: "MATCH", categoria: "MATCH" },
+{ codigo: "35686", descricao: "ELMA CHIPS RUFFLES SAL PCT 68G CX C25", validade: "21/12/2026", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "36028", descricao: "SKOL ZERO LT SLEEK 350ML SH C 12", validade: "23/12/2026", Plts: 0, Caixas: 39, estrategia: "CERV ZERO", cluster: "CORE", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "36028", descricao: "SKOL ZERO LT SLEEK 350ML SH C 12", validade: "18/01/2027", Plts: 1, Caixas: 0, estrategia: "CERV ZERO", cluster: "CORE", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "36079", descricao: "ELMA CHIPS DORITOS NACHO PCT 120G CX C17", validade: "14/12/2026", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "36280", descricao: "BALLENA CREME MORANGO C TEQUILA GFA VD 750 ML", validade: "21/08/2029", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "TEQUILA" },
+{ codigo: "36280", descricao: "BALLENA CREME MORANGO C TEQUILA GFA VD 750 ML", validade: "25/09/2059", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "TEQUILA" },
+{ codigo: "36281", descricao: "BALLENA CREME DE COCO COM TEQUILA GFA VD 750 ML", validade: "25/06/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "TEQUILA" },
+{ codigo: "36281", descricao: "BALLENA CREME DE COCO COM TEQUILA GFA VD 750 ML", validade: "13/09/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "TEQUILA" },
+{ codigo: "36283", descricao: "BALLENA CREME CHOC CARAM C TEQUILA GFA VD 750 ML", validade: "14/08/2029", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "TEQUILA" },
+{ codigo: "36283", descricao: "BALLENA CREME CHOC CARAM C TEQUILA GFA VD 750 ML", validade: "25/09/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "TEQUILA" },
+{ codigo: "36476", descricao: "CHUVA DE PRATA ROSE GARRAFA VD 660ML", validade: "16/09/2029", Plts: 0, Caixas: 7, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "OUTROS" },
+{ codigo: "36479", descricao: "CHUVA DE PRATA BRANCA GARRAFA VD 660ML", validade: "14/05/2029", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "OUTROS" },
+{ codigo: "36697", descricao: "ZE DELIVERY SACOLA PLAST AMARELA C1000", validade: "14/08/2029", Plts: 0, Caixas: 9, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "TRADE MATERIALS" },
+{ codigo: "36773", descricao: "ZE DELIVERY SACOLA PLAST AMARELA C500", validade: "12/08/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "TRADE MATERIALS" },
+{ codigo: "20651", descricao: "CORONA EXTRA LATA SLEEK 350ML C 8 CX CARTAO", validade: "21/08/2027", Plts: 0, Caixas: 387, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "20651", descricao: "CORONA EXTRA LATA SLEEK 350ML C 8 CX CARTAO", validade: "26/06/2027", Plts: 2, Caixas: 0, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "24046", descricao: "Pureza VITAL 510 S/gas PET", validade: "27/08/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "25335", descricao: "SALTON ESPUMANTE BRUT ROSE GFA VD 750 ML", validade: "14/08/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "2544", descricao: "EXTRA SERRAMALTE 600ML GFA", validade: "13/05/2027", Plts: 0, Caixas: 1, estrategia: "CERV RGB", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "29495", descricao: "GATORADE ZERO CALORIA BLUE PET 350ML SH C12", validade: "25/02/2027", Plts: 0, Caixas: 21, estrategia: "NAB GATORADE", cluster: "INNO - ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "29495", descricao: "GATORADE ZERO CALORIA BLUE PET 350ML SH C12", validade: "13/03/2027", Plts: 0, Caixas: 2, estrategia: "NAB GATORADE", cluster: "INNO - ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "32644", descricao: "BUBBALOO UVA DISPLAY 5G CX/60", validade: "19/06/2028", Plts: 0, Caixas: 9, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "32644", descricao: "BUBBALOO UVA DISPLAY 5G CX/60", validade: "29/06/2028", Plts: 0, Caixas: 8, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "35404", descricao: "DO BEM SUCO DE UVA TETRAPAK 200ML CX24", validade: "14/04/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SUCO" },
+{ codigo: "35976", descricao: "SANTA HELENA VINHO ROSE RESERVADO GFA VD 750 ML", validade: "12/08/2029", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "4198", descricao: "PATAGONIA IPA LT SLEEK 350ML C 8 CX CARTAO", validade: "05/05/2027", Plts: 0, Caixas: 3, estrategia: "CERV LATA", cluster: "CRAFT", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "22830", descricao: "MONTILLA CARTA OURO GARRAFA VIDRO 1 L", validade: "13/06/2029", Plts: 0, Caixas: 6, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "24306", descricao: "RED BULL MELANCIA LATA 250ML FOUR PACK NPAL", validade: "29/05/2027", Plts: 0, Caixas: 102, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "26494", descricao: "ELMA CHIPS AMENDOIM JAPONES PCTE 145G", validade: "21/12/2026", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "29461", descricao: "YVY GIN SECO NATIVO TERRA GFA VD 750 ML", validade: "12/08/2029", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "31176", descricao: "HOCUS POCUS ALMA LT AL 350ML CX/6", validade: "24/01/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "32485", descricao: "CHOPP BRAHMA LT SLEEK 350ML CX CART C8", validade: "08/10/2026", Plts: 0, Caixas: 12, estrategia: "CERV LATA", cluster: "CORE", categoria: "CHOPP" },
+{ codigo: "34420", descricao: "RED BULL SUMMER MARACUJA E MELAO LATA 250ML FOUR P", validade: "14/03/2027", Plts: 0, Caixas: 69, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "35222", descricao: "CROQUES BATATA CHIPS PICANHA C BARBECUE PACOTE 45G", validade: "23/05/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "35230", descricao: "CROQUES BATATA CHIPS LISA CREME CEBOLA PACOTE 45G", validade: "21/05/2027", Plts: 0, Caixas: 6, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "35331", descricao: "BUDWEISER GFA VD 1L", validade: "16/05/2027", Plts: 1, Caixas: 0, estrategia: "CERV RGB", cluster: "CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "35331", descricao: "BUDWEISER GFA VD 1L", validade: "27/05/2027", Plts: 0, Caixas: 49, estrategia: "CERV RGB", cluster: "CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "35331", descricao: "BUDWEISER GFA VD 1L", validade: "30/05/2027", Plts: 1, Caixas: 0, estrategia: "CERV RGB", cluster: "CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "35415", descricao: "ELMA CHIPS CHEETOS ONDA REQUEIJAO PCT 105G CX C14", validade: "23/11/2026", Plts: 0, Caixas: 5, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "36566", descricao: "GATO NEGRO VINHO TIN C SAUVIGNON GFA VD 750 ML", validade: "21/08/2029", Plts: 0, Caixas: 11, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "9089", descricao: "SUKITA LATA 350ML C12", validade: "10/05/2027", Plts: 2, Caixas: 224, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "20498", descricao: "BRAHMA DUPLO MALTE LT SLEEK 350ML SH C 12", validade: "08/04/2027", Plts: 0, Caixas: 12, estrategia: "CERV LATA", cluster: "INNO - CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "21541", descricao: "LARIOS ORIGINAL GARRAFA VIDRO 700ML", validade: "13/09/2029", Plts: 0, Caixas: 10, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "23182", descricao: "PITU AGUARDENTE GFA VD 965ML CX C/12", validade: "14/08/2029", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "32498", descricao: "STELLA ARTOIS PURE GOLD LT 269ML CX CARTAO C/8 NPA", validade: "16/02/2027", Plts: 0, Caixas: 26, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "32648", descricao: "BUBBALOO MORANGO DISPLAY 5G CX/60", validade: "02/06/2028", Plts: 0, Caixas: 6, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "33316", descricao: "VITARELLA NIKITO REC CHOCOLATE PCT 120G CX/36", validade: "11/04/2027", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "33316", descricao: "VITARELLA NIKITO REC CHOCOLATE PCT 120G CX/36", validade: "10/04/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "33318", descricao: "VITARELLA NIKITO REC CHOC C MORANGO PCT 120G CX/36", validade: "12/02/2027", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "34411", descricao: "FLORESTAL FLOPI BALA LARANJA S AC DISPLAY 480G", validade: "07/12/2026", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "36345", descricao: "BRUTAL FRUIT LT 269ML CX CARTAO C8 NP", validade: "01/11/2026", Plts: 0, Caixas: 400, estrategia: "CERV LATA", cluster: "INNO - MATCH", categoria: "MATCH" },
+{ codigo: "36541", descricao: "BENJAMIN VIN T S CHARDONNAY GFA VD 750 ML", validade: "14/08/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "37472", descricao: "CHICLETE ADAMS TUTTI FRUTTI CAIXINHA 2,8G CX C/100", validade: "05/01/2028", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "37472", descricao: "CHICLETE ADAMS TUTTI FRUTTI CAIXINHA 2,8G CX C/100", validade: "06/01/2028", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "11556", descricao: "GUARANA ANTARCTICA ZERO PET 1L CAIXA C/6", validade: "12/12/2026", Plts: 0, Caixas: 37, estrategia: "NAB S/ Gatorade", cluster: "INNO - ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "11556", descricao: "GUARANA ANTARCTICA ZERO PET 1L CAIXA C/6", validade: "02/03/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "INNO - ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "18780", descricao: "CORONITA EXTRA OW 210ML CX C/4 SIX PACK", validade: "01/09/2027", Plts: 0, Caixas: 2, estrategia: "CERV LONG NECK", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "18780", descricao: "CORONITA EXTRA OW 210ML CX C/4 SIX PACK", validade: "04/10/2027", Plts: 1, Caixas: 0, estrategia: "CERV LONG NECK", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "27624", descricao: "RESERVADO VINHO MALBEC GFA VD 750 ML", validade: "13/09/2029", Plts: 0, Caixas: 10, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "27784", descricao: "RESERVADO VINHO CABERNET SAUVIGNON GFA VD 750 ML", validade: "14/05/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "27784", descricao: "RESERVADO VINHO CABERNET SAUVIGNON GFA VD 750 ML", validade: "31/12/2099", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "33820", descricao: "MULTIPACK BRAHMA CHOPP LATA 350ML SH C/12 NPAL", validade: "12/05/2027", Plts: 12, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "33820", descricao: "MULTIPACK BRAHMA CHOPP LATA 350ML SH C/12 NPAL", validade: "27/04/2027", Plts: 0, Caixas: 26, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "33933", descricao: "TONICA ANTARCTICA INTENSE LT SLEEK 350ML SH C 12", validade: "13/04/2027", Plts: 0, Caixas: 56, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "36024", descricao: "SKOL ZERO LONG NECK 330ML SIX-PACK SHRINK C/4", validade: "11/02/2027", Plts: 0, Caixas: 37, estrategia: "CERV ZERO", cluster: "CORE", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "36045", descricao: "FOYE VINHO TINTO CARMENERE RES GFA VD 750 ML", validade: "14/08/2029", Plts: 0, Caixas: 6, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "4243", descricao: "MINALBA AGUA MINERAL S/GAS GFA PET 10L", validade: "04/02/2028", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "9072", descricao: "BOHEMIA NOVA EMBALAGEM LATA 350ML SH C/12 NPAL", validade: "01/05/2027", Plts: 0, Caixas: 11, estrategia: "CERV LATA", cluster: "CORE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "24048", descricao: "SAO LOURENCO AGUA MIN. C GAS GFA PET 1260ML FD C 6", validade: "15/02/2027", Plts: 0, Caixas: 9, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "35228", descricao: "CROQUES BATATA CHIPS COST C/ LIMAO PACOTE 45G CX10", validade: "11/04/2027", Plts: 0, Caixas: 10, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "24603", descricao: "SAN PELLEGRINO COM GAS GARRAFA VD 250 ML CX24", validade: "06/04/2028", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "32538", descricao: "PERGOLA SEL. VINHO TINTO SUAVE GARRAFA VIDRO 1 L", validade: "14/08/2029", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "37940", descricao: "ZE DELIVERY BAG TERMICO 1 UN 30X36X20 C50 RET", validade: "16/09/2059", Plts: 0, Caixas: 5, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "TRADE MATERIALS" },
+{ codigo: "14550", descricao: "COLORADO APPIA ONE WAY 600ML CX C-12 ARTE", validade: "31/03/2027", Plts: 0, Caixas: 16, estrategia: "CERV OUTROS", cluster: "CRAFT", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "21539", descricao: "JIM BEAM WHITE GARRAFA VIDRO 1 L", validade: "12/08/2029", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "21786", descricao: "MONTILLA CARTA BRANCA GARRAFA VIDRO 1 L", validade: "16/09/2029", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "22840", descricao: "STELLA ARTOIS BIB 6L NPAL", validade: "12/11/2026", Plts: 0, Caixas: 2, estrategia: "CERV BIB", cluster: "HE", categoria: "CHOPP" },
+{ codigo: "23269", descricao: "SKOL BEATS GT LONG NECK 269ML SIX-PACK SH C/4", validade: "16/02/2027", Plts: 0, Caixas: 9, estrategia: "CERV LONG NECK", cluster: "MATCH", categoria: "MATCH" },
+{ codigo: "24346", descricao: "MICHELOB ULTRA N LT 269ML CX CARTAO C/8 NPAL", validade: "17/03/2027", Plts: 8, Caixas: 0, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "24346", descricao: "MICHELOB ULTRA N LT 269ML CX CARTAO C/8 NPAL", validade: "21/01/2027", Plts: 2, Caixas: 12, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "24346", descricao: "MICHELOB ULTRA N LT 269ML CX CARTAO C/8 NPAL", validade: "24/05/2027", Plts: 1, Caixas: 0, estrategia: "CERV LATA", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "24763", descricao: "TIAL SUCO PRONTO 100 MANGA TETRA PAK 1 L CX C/12", validade: "10/04/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "25303", descricao: "GARRAFEIRA PL. PRETO BEES 1 UN P/24 GFA 600ML", validade: "31/12/2099", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "TRADE MATERIALS" },
+{ codigo: "26037", descricao: "MONTILLA CARTA CRISTAL GFA VDR 1L", validade: "14/08/2029", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "26411", descricao: "TIAL NECTAR DE CAJU TETRA PAK 1 L CX C/12", validade: "10/03/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "27541", descricao: "DIABLO VINHO DARK RED ASSEMBLADE TINTO GFA VD 750", validade: "13/08/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "27613", descricao: "CASILLERO DEL DIABLO VNH RSV CABER SAUVG GFA VD 75", validade: "25/09/2027", Plts: 0, Caixas: 22, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "27613", descricao: "CASILLERO DEL DIABLO VNH RSV CABER SAUVG GFA VD 75", validade: "31/12/2099", Plts: 0, Caixas: 24, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "29050", descricao: "VINHO DO ZE TINTO GFA OW 750ML CX C/6 NP", validade: "31/12/2066", Plts: 0, Caixas: 41, estrategia: "CERV OUTROS", cluster: "INNO - MATCH", categoria: "WINE" },
+{ codigo: "29060", descricao: "VINHO DO ZE BRANCO GFA OW 750ML CX C/6 NP", validade: "31/12/2099", Plts: 0, Caixas: 8, estrategia: "CERV OUTROS", cluster: "INNO - MATCH", categoria: "WINE" },
+{ codigo: "29079", descricao: "VINHO DO ZE ROSE GFA OW 750ML CX C/6 NP", validade: "31/12/2099", Plts: 0, Caixas: 19, estrategia: "CERV OUTROS", cluster: "INNO - MATCH", categoria: "WINE" },
+{ codigo: "32746", descricao: "VINHO ESPUM DO ZE MOSCATEL ROSE GFA OW 750ML CX C/", validade: "12/08/2029", Plts: 0, Caixas: 5, estrategia: "CERV OUTROS", cluster: "MATCH", categoria: "WINE" },
+{ codigo: "32746", descricao: "VINHO ESPUM DO ZE MOSCATEL ROSE GFA OW 750ML CX C/", validade: "31/12/2099", Plts: 0, Caixas: 32, estrategia: "CERV OUTROS", cluster: "MATCH", categoria: "WINE" },
+{ codigo: "32750", descricao: "VINHO ESPUM DO ZE BRUT BRANCO GFA OW 750ML CX C/6", validade: "31/12/2099", Plts: 0, Caixas: 64, estrategia: "CERV OUTROS", cluster: "MATCH", categoria: "WINE" },
+{ codigo: "33857", descricao: "PURE GOLD STELLA ARTOIS 600ML", validade: "22/05/2027", Plts: 2, Caixas: 23, estrategia: "CERV RGB", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "33857", descricao: "PURE GOLD STELLA ARTOIS 600ML", validade: "10/05/2027", Plts: 2, Caixas: 0, estrategia: "CERV RGB", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "33878", descricao: "TIAL NECTAR MISTO UVA E PERA TETRA PAK 1 L CX C/12", validade: "31/03/2027", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "35113", descricao: "FLYING FISH LONG NECK 330 ML SIX-PACK SH C 4", validade: "09/02/2027", Plts: 0, Caixas: 27, estrategia: "CERV LONG NECK", cluster: "MATCH", categoria: "MATCH" },
+{ codigo: "35113", descricao: "FLYING FISH LONG NECK 330 ML SIX-PACK SH C 4", validade: "10/02/2027", Plts: 1, Caixas: 0, estrategia: "CERV LONG NECK", cluster: "MATCH", categoria: "MATCH" },
+{ codigo: "35113", descricao: "FLYING FISH LONG NECK 330 ML SIX-PACK SH C 4", validade: "11/02/2027", Plts: 1, Caixas: 0, estrategia: "CERV LONG NECK", cluster: "MATCH", categoria: "MATCH" },
+{ codigo: "35319", descricao: "FLYING FISH LT SLEEK 350ML SH C 12", validade: "14/01/2027", Plts: 0, Caixas: 48, estrategia: "CERV LATA", cluster: "MATCH", categoria: "MATCH" },
+{ codigo: "36077", descricao: "GUARANA ANTARCTICA ZERO + FIBRAS LATA 350ML SH C/1", validade: "01/05/2027", Plts: 0, Caixas: 11, estrategia: "NAB S/ Gatorade", cluster: "INNO - ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "36240", descricao: "TRIDENT XSENSES BLUEBERRY ENVELOPE 8G CX C/21", validade: "08/10/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "36240", descricao: "TRIDENT XSENSES BLUEBERRY ENVELOPE 8G CX C/21", validade: "16/05/2028", Plts: 0, Caixas: 19, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "37388", descricao: "BUBBALOO HORTELA DISPLAY 5G CX/60", validade: "04/06/2028", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "37388", descricao: "BUBBALOO HORTELA DISPLAY 5G CX/60", validade: "04/03/2028", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "37450", descricao: "MULTIPACK BUDWEISER LT SLEEK 350ML SH C 12", validade: "11/05/2027", Plts: 1, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "37450", descricao: "MULTIPACK BUDWEISER LT SLEEK 350ML SH C 12", validade: "03/04/2027", Plts: 1, Caixas: 281, estrategia: "CERV LATA", cluster: "CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "37450", descricao: "MULTIPACK BUDWEISER LT SLEEK 350ML SH C 12", validade: "24/04/2027", Plts: 2, Caixas: 0, estrategia: "CERV LATA", cluster: "CORE PLUS", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "4177", descricao: "TIAL NECTAR DE LARANJA TETRA PAK 1 L CX C/12", validade: "01/10/2026", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "29143", descricao: "PEPSI BLACK PET 1 L SHRINK C/6", validade: "14/10/2026", Plts: 0, Caixas: 37, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "29143", descricao: "PEPSI BLACK PET 1 L SHRINK C/6", validade: "08/11/2026", Plts: 0, Caixas: 36, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "REFRIGERANTE" },
+{ codigo: "36708", descricao: "RED BULL MACA EDITION SUGARFREE LATA 250ML FOUR PA", validade: "27/01/2027", Plts: 0, Caixas: 63, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "37149", descricao: "LACTA WAFER OREO FLOW PACK 20,1G CX C27", validade: "18/01/2027", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "24382", descricao: "DOM BOSCO VINHO TINTO SUAVE GFA VD 750 ML", validade: "21/08/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "371", descricao: "MALZBIER BRAHMA LONG NECK 355ML SIX-PACK C/24", validade: "27/05/2027", Plts: 0, Caixas: 13, estrategia: "CERV LONG NECK", cluster: "HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "31557", descricao: "SUKITA PET 1,5 SHRINK C/6", validade: "14/10/2026", Plts: 0, Caixas: 8, estrategia: "NAB S/ Gatorade", cluster: "INNO - AFFORDABLE", categoria: "REFRIGERANTE" },
+{ codigo: "36491", descricao: "BRUTAL FRUIT ITALIAN SPRITZ LONG NECK 275ML CX C12", validade: "05/01/2027", Plts: 0, Caixas: 1, estrategia: "CERV LONG NECK", cluster: "INNO - MATCH", categoria: "MATCH" },
+{ codigo: "36491", descricao: "BRUTAL FRUIT ITALIAN SPRITZ LONG NECK 275ML CX C12", validade: "04/01/2027", Plts: 0, Caixas: 5, estrategia: "CERV LONG NECK", cluster: "INNO - MATCH", categoria: "MATCH" },
+{ codigo: "23653", descricao: "BUDWEISER GARRAFA ALUMINIO 330ML CX C/24", validade: "16/01/2027", Plts: 0, Caixas: 8, estrategia: "CERV OUTROS", cluster: "CORE PLUS", categoria: "CHOPP" },
+{ codigo: "36509", descricao: "BENJAMIN VINHO TIN SEC MALBEC GFA VD 750 ML", validade: "14/08/2029", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "19227", descricao: "RED BULL BR LATA 355ML FOUR PACK .", validade: "28/04/2028", Plts: 0, Caixas: 34, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "19227", descricao: "RED BULL BR LATA 355ML FOUR PACK .", validade: "07/01/2027", Plts: 0, Caixas: 5, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "31352", descricao: "PACOQUITA ROLHA EMBALADA POTE PLAST 750G CX C 6", validade: "18/03/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "34679", descricao: "MENDORATO PCT 24G FD C/60", validade: "10/03/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "35387", descricao: "DO BEM SUCO DE UVA TETRAPAK 1L CX12", validade: "24/03/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SUCO" },
+{ codigo: "37326", descricao: "MENDORATO AMENDOIM S PELE SALGADO PCT PLAST 150G C", validade: "19/01/2027", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "22841", descricao: "BUDWEISER BIB 6L NPAL", validade: "13/11/2026", Plts: 0, Caixas: 1, estrategia: "CERV BIB", cluster: "CORE PLUS", categoria: "CHOPP" },
+{ codigo: "24384", descricao: "DOM BOSCO VINHO TINTO SECO GFA VD 750 ML", validade: "21/08/2029", Plts: 0, Caixas: 5, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "25189", descricao: "51 ICE KIWI GARRAFA VD 275ML CX C24", validade: "20/05/2027", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "35379", descricao: "LIPTON PESSEGO LATA SLEEK 340 ML SH C/12", validade: "02/03/2027", Plts: 0, Caixas: 3, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "CHA" },
+{ codigo: "36434", descricao: "RED BULL ZERO BR LATA 250ML FOUR PACK NPAL", validade: "30/05/2027", Plts: 0, Caixas: 2, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "38072", descricao: "TAMPICO REFRESCO FRUTAS CITRICAS GFA PET 450ML CX1", validade: "11/02/2027", Plts: 1, Caixas: 7, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "38086", descricao: "TAMPICO REFRESCO FRUTAS CITRICAS GFA PET 270ML CX1", validade: "08/03/2027", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "38086", descricao: "TAMPICO REFRESCO FRUTAS CITRICAS GFA PET 270ML CX1", validade: "25/01/2027", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "38172", descricao: "STELLA ARTOIS PURE GOLD ONE WAY 600ML CX C12 NP", validade: "28/04/2027", Plts: 0, Caixas: 39, estrategia: "CERV OUTROS", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "38418", descricao: "HALLS BLUEBERRY ENVELOPE 28G CX C/21", validade: "30/01/2028", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "38418", descricao: "HALLS BLUEBERRY ENVELOPE 28G CX C/21", validade: "13/06/2028", Plts: 0, Caixas: 12, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "34351", descricao: "HARIBO BALA GEL CREAM KISS PCT PLAST 50G CX18", validade: "23/04/2027", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "Snacks" },
+{ codigo: "38077", descricao: "TAMPICO REFRESCO FRUTAS CITRICAS TETRA PAK 200 ML", validade: "20/07/2027", Plts: 0, Caixas: 6, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "NAB" },
+{ codigo: "13578", descricao: "BRAHMA CHOPP ZERO GFA VD 300ML CX C/23", validade: "15/12/2026", Plts: 0, Caixas: 39, estrategia: "CERV ZERO", cluster: "INNO - CORE", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "13578", descricao: "BRAHMA CHOPP ZERO GFA VD 300ML CX C/23", validade: "16/12/2026", Plts: 14, Caixas: 0, estrategia: "CERV ZERO", cluster: "INNO - CORE", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "22507", descricao: "JIM BEAM FIRE GARRAFA VIDRO 1 L", validade: "13/08/2029", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "36547", descricao: "BENJAMIN VIN T SU DOC MALBEC GFA VD 750 ML", validade: "12/08/2029", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "37634", descricao: "ELMA CHIPS FANDANGOS PRESUNTO PCT PLAST 85G CX/15", validade: "23/11/2026", Plts: 0, Caixas: 3, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "38038", descricao: "BENJAMIN VIN TINT SELECT MALBEC GFA VD 750 ML", validade: "14/05/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "36443", descricao: "MULTIPACK GATORADE MORANGO-MARACUJA PET 500ML C/6", validade: "10/05/2027", Plts: 1, Caixas: 0, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "36443", descricao: "MULTIPACK GATORADE MORANGO-MARACUJA PET 500ML C/6", validade: "10/03/2027", Plts: 0, Caixas: 254, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "36446", descricao: "GATORADE LARANJA PET 500ML SIXPACK MULTIPACK", validade: "09/03/2027", Plts: 1, Caixas: 253, estrategia: "NAB GATORADE", cluster: "ESTRATEGICO", categoria: "ISOTONICO" },
+{ codigo: "38460", descricao: "RED BULL ZERO BR LATA 473ML CX C 12", validade: "02/04/2027", Plts: 0, Caixas: 15, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "38460", descricao: "RED BULL ZERO BR LATA 473ML CX C 12", validade: "16/06/2027", Plts: 1, Caixas: 0, estrategia: "NAB S/ Gatorade", cluster: "ESTRATEGICO", categoria: "ENERGETICO" },
+{ codigo: "20537", descricao: "BECKS ONE WAY 600ML PAPELÃO CX C/12 NPAL", validade: "16/01/2027", Plts: 0, Caixas: 2, estrategia: "CERV OUTROS", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "20537", descricao: "BECKS ONE WAY 600ML PAPELÃO CX C/12 NPAL", validade: "15/01/2027", Plts: 0, Caixas: 10, estrategia: "CERV OUTROS", cluster: "INNO - HE", categoria: "CERVEJA COM ALCOOL" },
+{ codigo: "35476", descricao: "ELMA CHIPS DORITOS NACHO PCT 75G CX25", validade: "11/01/2027", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "12951", descricao: "BRAHMA CHOPP ZERO LN 355ML SIXPACK CX CART C/04", validade: "15/12/2026", Plts: 0, Caixas: 3, estrategia: "CERV ZERO", cluster: "CORE", categoria: "CERVEJA SEM ALCOOL" },
+{ codigo: "21533", descricao: "BLACK STONE GARRAFA VIDRO 1 L", validade: "12/08/2029", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "21533", descricao: "BLACK STONE GARRAFA VIDRO 1 L", validade: "25/09/2029", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "WINE" },
+{ codigo: "26047", descricao: "MALIBU RUM GARRAFA VIDRO 750ML", validade: "14/08/2029", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "26818", descricao: "PITU LIMAO LT 350ML CX C/12", validade: "01/02/2028", Plts: 0, Caixas: 8, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "35741", descricao: "51 ICE MELANCIA GARRAFA VD 275ML CX C24", validade: "29/08/2027", Plts: 0, Caixas: 4, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "CACHAÇA" },
+{ codigo: "36205", descricao: "NUTRATA YOPRO B MOR CHOC BRANCO PCT 55G DISPLAY C1", validade: "01/04/2027", Plts: 0, Caixas: 2, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "SNACKS" },
+{ codigo: "37628", descricao: "BALLANTINES SWEET BLEND GFA VIDRO 700ML", validade: "13/09/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "38042", descricao: "NUTRATA BARRA BACIO CARAMELO PCT 45G DISPLAY C12", validade: "06/03/2027", Plts: 0, Caixas: 1, estrategia: "N/A", cluster: "N/A", categoria: "N/A" },
+{ codigo: "38079", descricao: "FIREBALL LICOR WHISKY CANELA GFA VDR 50ML CX 12", validade: "12/08/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "38079", descricao: "FIREBALL LICOR WHISKY CANELA GFA VDR 50ML CX 12", validade: "25/09/2029", Plts: 0, Caixas: 1, estrategia: "MKTP", cluster: "MARKET PLACE", categoria: "HARD LIQUOR" },
+{ codigo: "38345", descricao: "BEATS PINK LEMONADE LT 269ML CX CARTAO C/8 NPAL", validade: "30/05/2027", Plts: 0, Caixas: 504, estrategia: "CERV LONG NECK", cluster: "INNO - MATCH", categoria: "MATCH" },
+{ codigo: "38870", descricao: "TAMPICO REFRESCO FRUTAS CITRICAS GFA PET 2L SH C6", validade: "10/03/2027", Plts: 0, Caixas: 337, estrategia: "N/A", cluster: "N/A", categoria: "N/A" },
+
+
+  ];
+
+  const ITENS_POR_PAGINA = 16;
+  let paginaAtual = 1;
+  let selectedRange = "";
+
+  function parseDataBR(str) {
+    const [d, m, y] = str.split('/').map(Number);
+    return new Date(y, m - 1, d, 0, 0, 0, 0);
+  }
+
+  function getDias(validadeStr) {
+    const v = parseDataBR(validadeStr);
+    const diffTempo = v.getTime() - HOJE.getTime();
+    return Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+  }
+
+  const db = ITENS.map(it => ({ ...it, dias: getDias(it.validade) }));
+
+  function preencherSelects() {
+    const combos = {
+      fEstrategia: [...new Set(db.map(d => d.estrategia))],
+      fCluster: [...new Set(db.map(d => d.cluster))],
+      fCategoria: [...new Set(db.map(d => d.categoria))]
+    };
+    for (let id in combos) {
+      const el = document.getElementById(id);
+      combos[id].sort().forEach(v => {
+        el.innerHTML += `<option value="${v}">${v}</option>`;
+      });
+    }
+  }
+
+  function filtrar() {
+    const codInput = document.getElementById('codigo').value.trim();
+    const est = document.getElementById('fEstrategia').value;
+    const clu = document.getElementById('fCluster').value;
+    const cat = document.getElementById('fCategoria').value;
+
+    let res = db.filter(d => {
+      const matchCod = codInput === "" ? true : d.codigo.includes(codInput);
+      const matchEst = !est || d.estrategia === est;
+      const matchClu = !clu || d.cluster === clu;
+      const matchCat = !cat || d.categoria === cat;
+      return matchCod && matchEst && matchClu && matchCat;
+    });
+
+    renderResumo(res);
+
+    if (selectedRange) {
+      res = res.filter(d => {
+        if (selectedRange === "vencidos") return d.dias < 0;
+        if (selectedRange === "lte-30") return d.dias >= 0 && d.dias <= 30;
+        if (selectedRange === "30-59") return d.dias > 30 && d.dias < 60;
+        if (selectedRange === "gte-60") return d.dias >= 60;
+        return true;
+      });
+    }
+    
+    // Sempre volta para a primeira página ao filtrar
+    paginaAtual = 1;
+    renderTabelaEPaginacao(res);
+  }
+
+  function renderResumo(lista) {
+    const stats = { venc: { n: 0, p: 0, c: 0 }, r30: { n: 0, p: 0, c: 0 }, r60: { n: 0, p: 0, c: 0 }, r90: { n: 0, p: 0, c: 0 } };
+    lista.forEach(item => {
+      let k = item.dias < 0 ? 'venc' : item.dias <= 30 ? 'r30' : item.dias < 60 ? 'r60' : 'r90';
+      stats[k].n++; stats[k].p += Number(item.Plts); stats[k].c += Number(item.Caixas);
+    });
+    const total = lista.length || 1;
+    const update = (idCnt, idVol, idBar, data) => {
+      document.getElementById(idCnt).textContent = data.n;
+      document.getElementById(idVol).textContent = `${data.p} plts / ${data.c} cx`;
+      document.getElementById(idBar).style.width = (data.n / total * 100) + "%";
+    };
+    update('cntVenc', 'volVenc', 'barVenc', stats.venc);
+    update('cnt30', 'vol30', 'bar30', stats.r30);
+    update('cnt60', 'vol60', 'bar60', stats.r60);
+    update('cnt90', 'vol90', 'bar90', stats.r90);
+  }
+
+  function renderTabelaEPaginacao(lista) {
+    const tbody = document.getElementById('tbody');
+    const area = document.getElementById('areaResultados');
+    const sem = document.getElementById('semResultados');
+    const paginacao = document.getElementById('paginacao');
+
+    if (lista.length === 0) { 
+      area.style.display = 'none'; 
+      sem.style.display = 'block'; 
+      return; 
+    }
+    area.style.display = 'block'; 
+    sem.style.display = 'none';
+
+    lista.sort((a,b) => a.dias - b.dias);
+
+    // Lógica da Paginação
+    const totalPaginas = Math.ceil(lista.length / ITENS_POR_PAGINA);
+    if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+
+    const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
+    const fim = inicio + ITENS_POR_PAGINA;
+    const listaPaginada = lista.slice(inicio, fim);
+
+    // Renderizar Cartões
+    tbody.innerHTML = listaPaginada.map(d => {
+      let color = d.dias < 0 ? 'var(--status-vencido)' : d.dias <= 30 ? 'var(--status-critico)' : d.dias < 60 ? 'var(--status-atencao)' : 'var(--status-ok)';
+      let label = d.dias < 0 ? "VENCIDO" : `${d.dias} dias`;
+
+      return `<tr>
+        <td data-label="Código"><span class="badge-cod">${d.codigo}</span></td>
+        <td class="td-descricao"><div style="font-weight:700; font-size:0.92rem; color:#fff">${d.descricao}</div></td>
+        <td data-label="Validade">${d.validade}</td>
+        <td data-label="Paletes"><b>${d.Plts}</b></td>
+        <td data-label="Caixas">${d.Caixas}</td>
+        <td data-label="Cluster">${d.cluster}</td>
+        <td data-label="Status de Risco">
+          <span class="badge-pill" style="color:${color}; background:${color}20; border: 1px solid ${color}40">
+            <span class="dot" style="background:${color}"></span>${label}
+          </span>
+        </td>
+      </tr>`;
+    }).join('');
+
+    // Texto descritivo dos resultados
+    document.getElementById('resumoFinal').textContent = `Exibindo ${inicio + 1}-${Math.min(fim, lista.length)} de ${lista.length} registros`;
+
+    // Renderizar Botões da Paginação
+    let btnHTML = `<button class="page-btn" ${paginaAtual === 1 ? 'disabled' : ''} onclick="mudarPagina(${paginaAtual - 1}, arguments[0])">&laquo;</button>`;
+
+    for (let i = 1; i <= totalPaginas; i++) {
+      btnHTML += `<button class="page-btn ${i === paginaAtual ? 'active' : ''}" onclick="mudarPagina(${i}, arguments[0])">${i}</button>`;
+    }
+
+    btnHTML += `<button class="page-btn" ${paginaAtual === totalPaginas ? 'disabled' : ''} onclick="mudarPagina(${paginaAtual + 1}, arguments[0])">&raquo;</button>`;
+
+    paginacao.innerHTML = btnHTML;
+  }
+
+  window.mudarPagina = function(p, event) {
+    if (event) event.preventDefault();
+    paginaAtual = p;
+    // Re-filtra reutilizando a lista atual sem resetar a página
+    const codInput = document.getElementById('codigo').value.trim();
+    const est = document.getElementById('fEstrategia').value;
+    const clu = document.getElementById('fCluster').value;
+    const cat = document.getElementById('fCategoria').value;
+
+    let res = db.filter(d => {
+      const matchCod = codInput === "" ? true : d.codigo.includes(codInput);
+      const matchEst = !est || d.estrategia === est;
+      const matchClu = !clu || d.cluster === clu;
+      const matchCat = !cat || d.categoria === cat;
+      return matchCod && matchEst && matchClu && matchCat;
+    });
+
+    if (selectedRange) {
+      res = res.filter(d => {
+        if (selectedRange === "vencidos") return d.dias < 0;
+        if (selectedRange === "lte-30") return d.dias >= 0 && d.dias <= 30;
+        if (selectedRange === "30-59") return d.dias > 30 && d.dias < 60;
+        if (selectedRange === "gte-60") return d.dias >= 60;
+        return true;
+      });
+    }
+
+    renderTabelaEPaginacao(res);
+    window.scrollTo({ top: document.getElementById('areaResultados').offsetTop - 20, behavior: 'smooth' });
+  };
+
+  document.getElementById('codigo').oninput = filtrar;
+  document.querySelectorAll('select').forEach(s => s.onchange = filtrar);
+  document.querySelectorAll('.chip').forEach(el => {
+    el.onclick = () => {
+      const range = el.getAttribute('data-range');
+      selectedRange = (selectedRange === range) ? "" : range;
+      document.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+      if(selectedRange) {
+        el.classList.add('active');
+        document.getElementById('btnLimparFaixa').disabled = false;
+      } else {
+        document.getElementById('btnLimparFaixa').disabled = true;
+      }
+      filtrar();
+    };
+  });
+
+  document.getElementById('btnLimparFaixa').onclick = function() {
+    selectedRange = ""; this.disabled = true;
+    document.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+    filtrar();
+  };
+
+  document.getElementById('btnLimpar').onclick = () => {
+    document.getElementById('codigo').value = "";
+    document.querySelectorAll('select').forEach(s => s.value = "");
+    selectedRange = "";
+    document.getElementById('btnLimparFaixa').disabled = true;
+    document.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+    filtrar();
+  };
+
+  preencherSelects();
+  filtrar();
+</script>
+
+</body>
+</html>
